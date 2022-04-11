@@ -1,7 +1,8 @@
-from django.db import 
+from django.db import models
+
 
 print('И тебе привет!!!')
-Privet
+'Privet'
 # Create your models here.
 # New_string
 print("Что-то")
