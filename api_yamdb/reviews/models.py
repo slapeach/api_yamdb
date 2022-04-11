@@ -11,3 +11,4 @@ Privet
 =======
 # New_string
 >>>>>>> c84006114e415772fc7dd2ce141e10696cf7f623
+print("Что-то")
