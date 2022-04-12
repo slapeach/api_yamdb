@@ -1,8 +1,14 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 
-from reviews.models import Title, Review
-from .serializers import ReviewSerializer
+from reviews.models import User, Title, Review
+from .serializers import UserSerializer, ReviewSerializer
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    """Вьюсет сериалайзера UserSerializer"""
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):

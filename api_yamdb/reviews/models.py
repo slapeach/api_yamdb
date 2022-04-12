@@ -13,6 +13,7 @@ ROLE_LIST = [
 class User(AbstractUser):
     bio = models.TextField('Биография', blank=True)
     role = models.CharField(max_length=20, choices=ROLE_LIST, default='user')
+    REQUIRED_FIELD = ['username', 'email']
 
 
 class Category(models.Model):
