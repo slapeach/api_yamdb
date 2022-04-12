@@ -29,21 +29,21 @@ class Genre(models.Model):
 class Title(models.Model):
     title = models.CharField(max_length=200)
     genre = models.ManyToManyField(
-        Genre, on_delete=models.SET_NULL, related_name='titles', blank=True
+        Genre, related_name='titles', blank=True
     )
     category = models.ForeignKey(
-        Category, on_delete=models.SET_NULL, related_name='titles'
+        Category, on_delete=models.SET_NULL, related_name='titles', null=True
     )
     description = models.TextField()
     year = models.IntegerField()
 
 
 class Review(models.Model):
-    author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='review')
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name='review')
     text = models.TextField()
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='review')
     score = models.PositiveSmallIntegerField(
         default=1,
         validators=[
@@ -60,11 +60,11 @@ class Review(models.Model):
 
 
 class Comment(models.Model):
-    author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='comments')
     review = models.ForeignKey(
         Review, on_delete=models.CASCADE, related_name='comments')
     text = models.TextField()
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='comments')
     created = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True
     )
