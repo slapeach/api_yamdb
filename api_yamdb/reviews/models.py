@@ -1,4 +1,4 @@
-from unicodedata import category
+from pyexpat import model
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -27,15 +27,20 @@ class Genre(models.Model):
 
 
 class Title(models.Model):
-    title = models.CharField(max_length=200)
+    name = models.CharField(max_length=200)
     genre = models.ManyToManyField(
-        Genre, related_name='titles', blank=True
+        Genre, through='TitleGenre'
     )
     category = models.ForeignKey(
-        Category, on_delete=models.SET_NULL, related_name='titles', null=True
+        Category, on_delete=models.SET_NULL, related_name='titles', blank=True, null=True
     )
-    description = models.TextField()
+    description = models.TextField(blank=True, null=True)
     year = models.IntegerField()
+
+
+class TitleGenre(models.Model):
+    title_id = models.ForeignKey(Title, on_delete=models.SET_NULL, blank=True, null=True)
+    genre_id = models.ForeignKey(Genre, on_delete=models.SET_NULL, blank=True, null=True)
 
 
 class Review(models.Model):
