@@ -1,3 +1,4 @@
+from unicodedata import category
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -15,15 +16,25 @@ class User(AbstractUser):
 
 
 class Category(models.Model):
-    pass
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(unique=True)
 
 
 class Genre(models.Model):
-    pass
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(unique=True)
 
 
 class Title(models.Model):
-    pass
+    title = models.CharField(max_length=200)
+    genre = models.ManyToManyField(
+        Genre, on_delete=models.SET_NULL, related_name='titles', blank=True
+    )
+    category = models.ForeignKey(
+        Category, on_delete=models.SET_NULL, related_name='titles'
+    )
+    description = models.TextField()
+    year = models.IntegerField()
 
 
 class Review(models.Model):
