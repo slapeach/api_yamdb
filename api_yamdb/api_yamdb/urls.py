@@ -25,4 +25,5 @@ urlpatterns = [
         name='redoc'
     ),
     path('auth/', include('django.contrib.auth.urls')),
+    path('api/', include('api.urls')),
 ]
