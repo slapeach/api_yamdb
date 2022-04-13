@@ -17,7 +17,8 @@ class UserViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 def send_code(self,request):
     serializer = UserSerializer(data=request.data)
-    confirmation_code = 111777111777
+    confirmation_code = 1177
+    serializer.data["confirmation_code"]  = confirmation_code
     if serializer.is_valid():
         serializer.save()
         send_mail(
