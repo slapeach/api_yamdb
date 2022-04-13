@@ -1,7 +1,9 @@
 from django.urls import path, include
 from rest_framework import routers
 
-from .views import ReviewViewSet, CommentViewSet, UserViewSet
+from .views import (ReviewViewSet, CommentViewSet,
+                    UserViewSet, GenreViewSet,
+                    CategoryViewSet, TitleViewSet)
 
 app_name = 'api'
 
@@ -15,6 +17,8 @@ router.register(
     CommentViewSet, basename='comments'
 )
 router.register(r'users', UserViewSet)
+router.register(r'genres', GenreViewSet)
+router.register(r'categories', CategoryViewSet)
 
 
 urlpatterns = [
