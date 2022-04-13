@@ -1,5 +1,8 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.core.mail import send_mail
 
 from reviews.models import User, Title, Review
 from .serializers import UserSerializer, ReviewSerializer
@@ -9,6 +12,21 @@ class UserViewSet(viewsets.ModelViewSet):
     """Вьюсет сериалайзера UserSerializer"""
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+
+@api_view(['POST'])
+def send_code(self,request):
+    serializer = UserSerializer(data=request.data)
+    confirmation_code = 111777111777
+    if serializer.is_valid():
+        serializer.save()
+        send_mail(
+            'Регистрация YAMDB',
+            f'Для подтверждения регистрации используйте код подвтерждения: {confirmation_code}',
+            'yamdb@gmail.com',
+            [request.user.email],
+            fail_silently=False
+        )
 
 
 class ReviewViewSet(viewsets.ModelViewSet):

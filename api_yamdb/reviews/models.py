@@ -11,9 +11,15 @@ ROLE_LIST = [
 
 
 class User(AbstractUser):
-    bio = models.TextField('Биография', blank=True)
+    bio = models.TextField('Биография', blank=True,)
     role = models.CharField(max_length=20, choices=ROLE_LIST, default='user')
+    email = models.EmailField(unique=True)
+    username = models.CharField(max_length=40, unique=True)
     REQUIRED_FIELD = ['username', 'email']
+    USERNAME_FIELD = 'username'
+
+    def __str__(self):
+        return self.username
 
 
 class Category(models.Model):
