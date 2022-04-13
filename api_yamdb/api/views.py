@@ -30,3 +30,15 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     pass
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    pass
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    pass
+
+
+class GenreViewSet(viewsets.ModelViewSet):
+    pass
