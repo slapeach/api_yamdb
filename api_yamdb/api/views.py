@@ -45,3 +45,15 @@ class CommentViewSet(viewsets.ModelViewSet):
             author=self.request.user, title_id=self.kwargs.get('title_id'),
             review_id=self.kwargs.get('review_id')
         )
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    pass
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    pass
+
+
+class GenreViewSet(viewsets.ModelViewSet):
+    pass
