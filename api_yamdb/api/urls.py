@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework import routers
 
-from .views import ReviewViewSet, CommentViewSet, UserViewSet
+from .views import ReviewViewSet, CommentViewSet, UserViewSet, send_code, APIsend_code
 
 app_name = 'api'
 
@@ -15,8 +15,11 @@ router.register(
     CommentViewSet, basename='comments'
 )
 router.register(r'users', UserViewSet)
+#router.register(r'auth/signup', send_code, basename='confirmation_code')
 
 
 urlpatterns = [
     path('v1/', include(router.urls)),
+    #path('v1/auth/signup', send_code),
+    path('v1/auth/signup', APIsend_code.as_view()),
 ]

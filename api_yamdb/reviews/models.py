@@ -1,4 +1,4 @@
-from unicodedata import category
+from pyexpat import model
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -15,7 +15,7 @@ class User(AbstractUser):
     role = models.CharField(max_length=20, choices=ROLE_LIST, default='user')
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=40, unique=True)
-    confirmation_code = models.CharField(max_length=4)
+    confirmation_code = models.CharField(max_length=4, blank=True)
     REQUIRED_FIELD = ['username', 'email']
     USERNAME_FIELD = 'username'
 
@@ -34,23 +34,28 @@ class Genre(models.Model):
 
 
 class Title(models.Model):
-    title = models.CharField(max_length=200)
+    name = models.CharField(max_length=200)
     genre = models.ManyToManyField(
-        Genre, related_name='titles', blank=True
+        Genre, through='TitleGenre'
     )
     category = models.ForeignKey(
-        Category, on_delete=models.SET_NULL, related_name='titles', null=True
+        Category, on_delete=models.SET_NULL, related_name='titles', blank=True, null=True
     )
-    description = models.TextField()
+    description = models.TextField(blank=True, null=True)
     year = models.IntegerField()
+
+
+class TitleGenre(models.Model):
+    title_id = models.ForeignKey(Title, on_delete=models.SET_NULL, blank=True, null=True)
+    genre_id = models.ForeignKey(Genre, on_delete=models.SET_NULL, blank=True, null=True)
 
 
 class Review(models.Model):
     title = models.ForeignKey(
-        Title, on_delete=models.CASCADE, related_name='review')
+        Title, on_delete=models.CASCADE, related_name='reviews')
     text = models.TextField()
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='review')
+        User, on_delete=models.CASCADE, related_name='reviews')
     score = models.PositiveSmallIntegerField(
         default=1,
         validators=[
@@ -58,9 +63,15 @@ class Review(models.Model):
             MaxValueValidator(10)
         ]
     )
-    created = models.DateTimeField(
+    pub_date = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['title', 'author'],
+                                    name='unique_review')
+        ]
 
     def __str__(self):
         return self.text
@@ -72,6 +83,6 @@ class Comment(models.Model):
     text = models.TextField()
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='comments')
-    created = models.DateTimeField(
+    pub_date = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True
     )

@@ -1,11 +1,21 @@
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
-from rest_framework.decorators import api_view
+
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.core.mail import send_mail
 
-from reviews.models import User, Title, Review
-from .serializers import UserSerializer, ReviewSerializer
+
+from rest_framework.pagination import LimitOffsetPagination
+
+from reviews.models import User, Title, Review, Comment
+from .serializers import UserSerializer, ReviewSerializer, CommentSerializer
+from .permissions import (IsAuthorOrReadOnly,
+                          IsModeratorOrReadOnly, IsAdminOrReadOnly)
+from rest_framework.permissions import AllowAny
+from rest_framework import status
+from rest_framework.views import APIView
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -15,31 +25,53 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 @api_view(['POST'])
-def send_code(self,request):
+@permission_classes([AllowAny])
+def send_code(request):
     serializer = UserSerializer(data=request.data)
     confirmation_code = 1177
-    serializer.data["confirmation_code"]  = confirmation_code
+    #serializer.data["confirmation_code"]  = confirmation_code
     if serializer.is_valid():
         serializer.save()
         send_mail(
             'Регистрация YAMDB',
             f'Для подтверждения регистрации используйте код подвтерждения: {confirmation_code}',
             'yamdb@gmail.com',
-            [request.user.email],
+            [serializer.data["email"]],
             fail_silently=False
         )
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class APIsend_code(APIView):
+    permission_classes = (AllowAny,)
 
+    def post(self, request):
+        serializer = UserSerializer(data=request.data)
+        confirmation_code = 1177
+        #serializer.data["confirmation_code"]  = confirmation_code
+        if serializer.is_valid():
+            serializer.save()
+            send_mail(
+               'Регистрация YAMDB',
+                f'Для подтверждения регистрации используйте код подвтерждения: {confirmation_code}',
+                'yamdb@gmail.com',
+                [serializer.data["email"]],
+                fail_silently=False
+            )
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    # permission_classes = [IsAuthenticatedOrReadOnly & IsOwnerOrReadOnly]
-
-    def get_qieryset(self):
-        title_id = self.kwargs.get('title_id')
-        title = get_object_or_404(Title, pk=title_id)
-        queryset = title.review.all()
-        return queryset
+    permission_classes = [
+        IsAuthorOrReadOnly, IsAdminOrReadOnly, IsModeratorOrReadOnly
+    ]
+    pagination_class = LimitOffsetPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['title_id', 'review_id']
 
     def perform_create(self, serializer):
         serializer.save(
@@ -48,4 +80,16 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    pass
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [
+        IsAuthorOrReadOnly, IsAdminOrReadOnly, IsModeratorOrReadOnly
+    ]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['title_id', 'review_id', 'comment_id']
+
+    def perform_create(self, serializer):
+        serializer.save(
+            author=self.request.user, title_id=self.kwargs.get('title_id'),
+            review_id=self.kwargs.get('review_id')
+        )

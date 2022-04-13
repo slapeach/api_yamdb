@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 
 from reviews.models import User, Review, Comment
 
@@ -12,8 +13,22 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    pass
+    """Сериализатор для модели Review"""
+
+    class Meta:
+        model = Review
+        fields = ('id', 'title', 'text', 'author', 'score', 'pub_date')
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Review.objects.all(),
+                fields=['title', 'author']
+            )
+        ]
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    pass
+    """Сериализатор для модели Comment"""
+
+    class Meta:
+        model = Comment
+        fields = ('id', 'text', 'author', 'pub_date')
