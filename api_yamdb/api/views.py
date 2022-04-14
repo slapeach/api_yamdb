@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, mixins, filters
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.pagination import PageNumberPagination
 
 from reviews.models import User, Title, Review, Comment, Category, Genre
 from .serializers import (UserSerializer, ReviewSerializer,
@@ -22,6 +22,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = [
         IsAuthorOrReadOnly, IsAdminOrReadOnly, IsModeratorOrReadOnly
     ]
+    pagination_class = PageNumberPagination
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
@@ -42,6 +43,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = [
         IsAuthorOrReadOnly, IsAdminOrReadOnly, IsModeratorOrReadOnly
     ]
+    pagination_class = PageNumberPagination
 
     def get_queryset(self):
         review_id = self.kwargs.get('review_id')
