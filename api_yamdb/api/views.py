@@ -1,17 +1,12 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.core.mail import send_mail
-
-
-from rest_framework.pagination import LimitOffsetPagination
-
 from reviews.models import User, Title, Review, Comment
 from .serializers import UserSerializer, EmailTokenSerializer, ReviewSerializer, CommentSerializer, MyTokenObtainPairSerializer
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins, filters
 from rest_framework.pagination import LimitOffsetPagination
 
 from reviews.models import User, Title, Review, Comment, Category, Genre
@@ -133,7 +128,8 @@ class CategoryViewSet(mixins.CreateModelMixin,
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
-
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
 class GenreViewSet(mixins.CreateModelMixin,
                    mixins.ListModelMixin,
@@ -143,3 +139,5 @@ class GenreViewSet(mixins.CreateModelMixin,
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [IsAdminOrReadOnly]
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
