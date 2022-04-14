@@ -10,7 +10,7 @@ from django.core.mail import send_mail
 from rest_framework.pagination import LimitOffsetPagination
 
 from reviews.models import User, Title, Review, Comment
-from .serializers import UserSerializer, ReviewSerializer, CommentSerializer
+from .serializers import UserSerializer,EmailTokenSerializer, ReviewSerializer, CommentSerializer
 from .permissions import (IsAuthorOrReadOnly,
                           IsModeratorOrReadOnly, IsAdminOrReadOnly)
 from rest_framework.permissions import AllowAny
@@ -22,36 +22,16 @@ class UserViewSet(viewsets.ModelViewSet):
     """Вьюсет сериалайзера UserSerializer"""
     queryset = User.objects.all()
     serializer_class = UserSerializer
-
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def send_code(request):
-    serializer = UserSerializer(data=request.data)
-    confirmation_code = 1177
-    #serializer.data["confirmation_code"]  = confirmation_code
-    if serializer.is_valid():
-        serializer.save()
-        send_mail(
-            'Регистрация YAMDB',
-            f'Для подтверждения регистрации используйте код подвтерждения: {confirmation_code}',
-            'yamdb@gmail.com',
-            [serializer.data["email"]],
-            fail_silently=False
-        )
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    else:
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+
 class APIsend_code(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
         confirmation_code = 1177
-        #serializer.data["confirmation_code"]  = confirmation_code
+        serializer = EmailTokenSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(confirmation_code=confirmation_code)
             send_mail(
                'Регистрация YAMDB',
                 f'Для подтверждения регистрации используйте код подвтерждения: {confirmation_code}',
@@ -62,6 +42,7 @@ class APIsend_code(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
