@@ -32,13 +32,13 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class TitleSerializer(serializers.ModelSerializer):
     """Сериалайзер модели Title"""
-    rating = serializers.SerializerMethodField()
+    rating = serializers.IntegerField(read_only=True)
     category = serializers.StringRelatedField(read_only=True)
     genre = serializers.StringRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Title
-        fields = ('id', 'name', 'year', 'rating', 'description', 'genre', 'category')
+        fields = ('id', 'name', 'rating', 'year', 'description', 'genre', 'category')
 
     def get_rating(self, obj):
         title_id = obj.id
