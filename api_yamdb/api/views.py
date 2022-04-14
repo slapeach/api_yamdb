@@ -23,7 +23,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     ]
     pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['title_id', 'review_id']
+    filterset_fields = ['title_id']
 
     def perform_create(self, serializer):
         serializer.save(
@@ -38,7 +38,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         IsAuthorOrReadOnly, IsAdminOrReadOnly, IsModeratorOrReadOnly
     ]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['title_id', 'review_id', 'comment_id']
+    filterset_fields = ['review_id']
 
     def perform_create(self, serializer):
         serializer.save(
