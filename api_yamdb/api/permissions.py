@@ -50,8 +50,10 @@ class IsAdminOrReadOnly(permissions.BasePermission):
        только модераторам или авторам"""
 
     def has_permission(self, request, view):
-        return (
-            request.method in permissions.SAFE_METHODS
-            or request.user.is_staff
-            or request.user.is_superuser
-        )
+        if request.user.is_authenticated:
+            return (
+                request.method in permissions.SAFE_METHODS
+                or request.user.is_staff
+                or request.user.is_superuser
+                or request.user.role == 'admin'
+            )
