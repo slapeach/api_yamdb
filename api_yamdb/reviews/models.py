@@ -24,19 +24,28 @@ class User(AbstractUser):
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=200)
-    slug = models.SlugField(unique=True)
+    """Модель Category"""
+    name = models.CharField(max_length=256)
+    slug = models.SlugField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Genre(models.Model):
-    name = models.CharField(max_length=200)
-    slug = models.SlugField(unique=True)
+    """Модель Genre"""
+    name = models.CharField(max_length=256)
+    slug = models.SlugField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Title(models.Model):
+    """Модель Title"""
     name = models.CharField(max_length=200)
     genre = models.ManyToManyField(
-        Genre, through='TitleGenre'
+        Genre, through='TitleGenre', blank=True
     )
     category = models.ForeignKey(
         Category, on_delete=models.SET_NULL, related_name='titles', blank=True, null=True
@@ -44,10 +53,14 @@ class Title(models.Model):
     description = models.TextField(blank=True, null=True)
     year = models.IntegerField()
 
+    def __str__(self):
+        return self.name
+
 
 class TitleGenre(models.Model):
-    title_id = models.ForeignKey(Title, on_delete=models.SET_NULL, blank=True, null=True)
-    genre_id = models.ForeignKey(Genre, on_delete=models.SET_NULL, blank=True, null=True)
+    """Модель TitleGenre"""
+    title = models.ForeignKey(Title, on_delete=models.SET_NULL, null=True)
+    genre = models.ForeignKey(Genre, on_delete=models.SET_NULL, null=True)
 
 
 class Review(models.Model):

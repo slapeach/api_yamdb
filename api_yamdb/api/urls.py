@@ -1,12 +1,18 @@
 from django.urls import path, include
 from rest_framework import routers
 
-from .views import ReviewViewSet, CommentViewSet, UserViewSet, APIsend_code
+from .views import ReviewViewSet, CommentViewSet, UserViewSet
 
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
+
+from .views import (ReviewViewSet, CommentViewSet,
+                    UserViewSet, GenreViewSet,
+                    CategoryViewSet, TitleViewSet,
+                    APIsend_code)
+
 
 app_name = 'api'
 
@@ -20,7 +26,12 @@ router.register(
     CommentViewSet, basename='comments'
 )
 router.register(r'users', UserViewSet)
+<<<<<<< HEAD
 #router.register(r'auth/signup', send_code, basename='confirmation_code')
+=======
+router.register(r'genres', GenreViewSet)
+router.register(r'categories', CategoryViewSet)
+>>>>>>> master
 
 
 urlpatterns = [
