@@ -60,7 +60,11 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет сериалайзера UserSerializer"""
-    pass
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+    permission_classes = [IsAdminOrReadOnly]
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('name', 'year', 'genre', 'category')
 
 
 class CategoryViewSet(mixins.CreateModelMixin,
@@ -73,6 +77,7 @@ class CategoryViewSet(mixins.CreateModelMixin,
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+
 
 class GenreViewSet(mixins.CreateModelMixin,
                    mixins.ListModelMixin,
