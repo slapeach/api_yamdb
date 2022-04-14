@@ -1,6 +1,5 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-<<<<<<< HEAD
 from rest_framework import viewsets
 
 from rest_framework.decorators import api_view, permission_classes
@@ -11,8 +10,7 @@ from django.core.mail import send_mail
 from rest_framework.pagination import LimitOffsetPagination
 
 from reviews.models import User, Title, Review, Comment
-from .serializers import UserSerializer,EmailTokenSerializer, ReviewSerializer, CommentSerializer
-=======
+from .serializers import UserSerializer, EmailTokenSerializer, ReviewSerializer, CommentSerializer, MyTokenObtainPairSerializer
 from rest_framework import viewsets, mixins
 from rest_framework.pagination import LimitOffsetPagination
 
@@ -20,16 +18,31 @@ from reviews.models import User, Title, Review, Comment, Category, Genre
 from .serializers import (UserSerializer, ReviewSerializer,
                           CommentSerializer, TitleSerializer,
                           CategorySerializer, GenreSerializer)
->>>>>>> master
-from .permissions import (IsAuthorOrReadOnly,
-                          IsModeratorOrReadOnly, IsAdminOrReadOnly)
-from rest_framework.permissions import AllowAny
+from .permissions import (IsAuthorOrReadOnly, IsUserOrReadOnly,
+                          IsModeratorOrReadOnly, IsAdminOrReadOnly,
+                          IsSuperUser)
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from rest_framework.views import APIView
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+
+from rest_framework_simplejwt.tokens import RefreshToken
+
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+
+    return {
+        #'refresh': str(refresh),
+        'token': str(refresh.access_token),
+    }
 
 
 class UserViewSet(viewsets.ModelViewSet):
     """Вьюсет сериалайзера UserSerializer"""
+    permission_classes = (IsAuthenticated, IsAdminOrReadOnly, IsUserOrReadOnly, IsSuperUser)
     queryset = User.objects.all()
     serializer_class = UserSerializer
     
@@ -52,6 +65,18 @@ class APIsend_code(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class APIsend_token(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        serializer = MyTokenObtainPairSerializer(data=request.data)
+        if serializer.is_valid() and User.objects.filter(confirmation_code=serializer.data["confirmation_code"]):
+            return Response(get_tokens_for_user(request.user), status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
