@@ -45,8 +45,6 @@ class IsSuperUser(permissions.BasePermission):
 
         
 
-
-
 class IsAdminOrReadOnly(permissions.BasePermission):
     """Пермишен для доступа  к изменению контента
        только модераторам или авторам"""
@@ -56,5 +54,4 @@ class IsAdminOrReadOnly(permissions.BasePermission):
             request.method in permissions.SAFE_METHODS
             or request.user.is_staff
             or request.user.is_superuser
-            or request.user.role == 'admin'
         )

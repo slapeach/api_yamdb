@@ -1,3 +1,5 @@
+import math
+from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
@@ -31,13 +33,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = ('id', 'title', 'text', 'author', 'score', 'pub_date')
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Review.objects.all(),
-                fields=['title', 'author']
-            )
-        ]
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -50,15 +46,22 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class TitleSerializer(serializers.ModelSerializer):
     """Сериалайзер модели Title"""
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Title
         fields = ('id', 'name', 'year', 'rating', 'description', 'genre', 'category')
 
+    def get_rating(self, obj):
+        title_id = obj.id
+        scores = Review.objects.filter(title_id=title_id).aggregate(Avg('score'))
+        rating = math.ceil(scores.get('score__avg'))
+        return rating
+
 
 class GenreSerializer(serializers.ModelSerializer):
     """Сериалайзер модели Genre"""
-    
+
     class Meta:
         model = Genre
         fields = ('name', 'slug',)
@@ -66,7 +69,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
     """Сериалайзер модели Category"""
-    
+
     class Meta:
         model = Category
         fields = ('name', 'slug',)

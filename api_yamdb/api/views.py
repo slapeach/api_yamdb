@@ -80,14 +80,18 @@ class APIsend_token(APIView):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-    queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [
         IsAuthorOrReadOnly, IsAdminOrReadOnly, IsModeratorOrReadOnly
     ]
-    pagination_class = LimitOffsetPagination
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['title_id', 'review_id']
+
+    def get_queryset(self):
+        title_id = self.kwargs.get('title_id')
+        reviews = Review.objects.filter(title_id=title_id)
+        review_id = self.kwargs.get('review_id')
+        if not review_id:
+            return reviews
+        return reviews.filter(id=review_id)
 
     def perform_create(self, serializer):
         serializer.save(
@@ -96,13 +100,18 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [
         IsAuthorOrReadOnly, IsAdminOrReadOnly, IsModeratorOrReadOnly
     ]
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['title_id', 'review_id', 'comment_id']
+
+    def get_queryset(self):
+        review_id = self.kwargs.get('review_id')
+        comments = Comment.objects.filter(review_id=review_id)
+        comment_id = self.kwargs.get('comment_id')
+        if not comment_id:
+            return comments
+        return comments.filter(id=comment_id)
 
     def perform_create(self, serializer):
         serializer.save(
@@ -124,7 +133,6 @@ class CategoryViewSet(mixins.CreateModelMixin,
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
-
 
 
 class GenreViewSet(mixins.CreateModelMixin,
