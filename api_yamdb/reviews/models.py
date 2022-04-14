@@ -17,22 +17,25 @@ class User(AbstractUser):
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=200)
-    slug = models.SlugField(unique=True)
+    """Модель Category"""
+    name = models.CharField(max_length=256)
+    slug = models.SlugField(max_length=50, unique=True)
 
     def __str__(self):
         return self.name
 
 
 class Genre(models.Model):
-    name = models.CharField(max_length=200)
-    slug = models.SlugField(unique=True)
+    """Модель Genre"""
+    name = models.CharField(max_length=256)
+    slug = models.SlugField(max_length=50, unique=True)
 
     def __str__(self):
         return self.name
 
 
 class Title(models.Model):
+    """Модель Title"""
     name = models.CharField(max_length=200)
     genre = models.ManyToManyField(
         Genre, through='TitleGenre', blank=True
@@ -48,6 +51,7 @@ class Title(models.Model):
 
 
 class TitleGenre(models.Model):
+    """Модель TitleGenre"""
     title = models.ForeignKey(Title, on_delete=models.SET_NULL, null=True)
     genre = models.ForeignKey(Genre, on_delete=models.SET_NULL, null=True)
 

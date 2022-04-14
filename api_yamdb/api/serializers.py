@@ -39,14 +39,20 @@ class TitleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = ()
+        fields = ('id', 'name', 'year', 'rating', 'description', 'genre', 'category')
 
 
 class GenreSerializer(serializers.ModelSerializer):
     """Сериалайзер модели Genre"""
-    pass
+    
+    class Meta:
+        model = Genre
+        fields = ('name', 'slug',)
 
 
 class CategorySerializer(serializers.ModelSerializer):
     """Сериалайзер модели Category"""
-    pass
+    
+    class Meta:
+        model = Category
+        fields = ('name', 'slug',)

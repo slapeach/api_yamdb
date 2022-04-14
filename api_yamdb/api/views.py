@@ -1,10 +1,12 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins
 from rest_framework.pagination import LimitOffsetPagination
 
-from reviews.models import User, Title, Review, Comment
-from .serializers import UserSerializer, ReviewSerializer, CommentSerializer
+from reviews.models import User, Title, Review, Comment, Category, Genre
+from .serializers import (UserSerializer, ReviewSerializer,
+                          CommentSerializer, TitleSerializer,
+                          CategorySerializer, GenreSerializer)
 from .permissions import (IsAuthorOrReadOnly,
                           IsModeratorOrReadOnly, IsAdminOrReadOnly)
 
@@ -48,12 +50,26 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
+    """Вьюсет сериалайзера UserSerializer"""
     pass
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
-    pass
+class CategoryViewSet(mixins.CreateModelMixin,
+                      mixins.ListModelMixin,
+                      mixins.DestroyModelMixin,
+                      viewsets.GenericViewSet):
+    """Вьюсет сериалайзера UserSerializer"""
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [IsAdminOrReadOnly]
 
 
-class GenreViewSet(viewsets.ModelViewSet):
-    pass
+
+class GenreViewSet(mixins.CreateModelMixin,
+                   mixins.ListModelMixin,
+                   mixins.DestroyModelMixin,
+                   viewsets.GenericViewSet):
+    """Вьюсет сериалайзера UserSerializer"""
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    permission_classes = [IsAdminOrReadOnly]
