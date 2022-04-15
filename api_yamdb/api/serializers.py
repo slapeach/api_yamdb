@@ -9,6 +9,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериалайзер модели User"""
+    username = serializers.SlugField()
 
     class Meta:
         model = User
@@ -19,13 +20,19 @@ class EmailTokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username', 'email', 'confirmation_code')
-
+    
+    def validate(self, data):
+        if data['username'] == 'me':
+            raise serializers.ValidationError(
+                'Невозможно создать пользователя с таким username'
+            )
+        return data
 
 class MyTokenObtainPairSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("username", "confirmation_code")
+        fields = ('username', 'confirmation_code')
 
 
 class ReviewSerializer(serializers.ModelSerializer):

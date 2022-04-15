@@ -32,7 +32,7 @@ router.register(r'genres', GenreViewSet)
 router.register(r'categories', CategoryViewSet)
 
 urlpatterns = [
-    path('v1/auth/signup', APIsend_code.as_view()),
-    path('v1/auth/token', APIsend_token.as_view(), name='token_obtain_pair'),
+    path('v1/auth/signup/', APIsend_code.as_view()),
+    path('v1/auth/token/', APIsend_token.as_view(), name='token_obtain_pair'),
     path('v1/', include(router.urls)),
 ]
