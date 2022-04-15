@@ -33,6 +33,7 @@ class CommentSerializer(serializers.ModelSerializer):
 class TitleSerializer(serializers.ModelSerializer):
     """Сериалайзер модели Title"""
     rating = serializers.SerializerMethodField()
+    rating = serializers.IntegerField()
     category = serializers.StringRelatedField(read_only=True)
     genre = serializers.StringRelatedField(many=True, read_only=True)
 
