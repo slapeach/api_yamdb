@@ -24,7 +24,7 @@ class IsModeratorOrReadOnly(permissions.BasePermission):
             request.method in permissions.SAFE_METHODS
             or request.user.role == 'moderator'
         )
-    
+
 
 class IsUserOrReadOnly(permissions.BasePermission):
     """Пермишен для доступа  к изменению данных пользователя """
@@ -43,15 +43,13 @@ class IsSuperUser(permissions.BasePermission):
             request.user.is_superuser
         )
 
-        
 
 class IsAdminOrReadOnly(permissions.BasePermission):
     """Пермишен для доступа  к изменению контента
        только модераторам или авторам"""
 
     def has_permission(self, request, view):
-        return (
-            request.method in permissions.SAFE_METHODS
-            or request.user.is_staff
-            or request.user.is_superuser
-        )
+        return (request.user.is_staff or
+                request.method in permissions.SAFE_METHODS)
+    
+

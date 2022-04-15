@@ -1,20 +1,17 @@
-from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.core.mail import send_mail
 
 
-from rest_framework.pagination import LimitOffsetPagination
-
 from reviews.models import User, Title, Review, Comment
-from .serializers import UserSerializer, EmailTokenSerializer, ReviewSerializer, CommentSerializer, MyTokenObtainPairSerializer
+from .serializers import (UserSerializer, EmailTokenSerializer,
+                          ReviewSerializer, CommentSerializer,
+                          MyTokenObtainPairSerializer)
 from rest_framework import viewsets, mixins
 from rest_framework import viewsets, mixins, filters
 
-from rest_framework.pagination import LimitOffsetPagination
 
 from reviews.models import User, Title, Review, Comment, Category, Genre
 from .serializers import (UserSerializer, ReviewSerializer,
@@ -26,61 +23,70 @@ from .permissions import (IsAuthorOrReadOnly, IsUserOrReadOnly,
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from rest_framework.views import APIView
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+
 
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from django.shortcuts import get_object_or_404
 
 
 class UserViewSet(viewsets.ModelViewSet):
     """Вьюсет сериалайзера UserSerializer"""
-    permission_classes = (IsAuthenticated, IsAdminOrReadOnly, IsUserOrReadOnly, IsSuperUser)
+    permission_classes = (IsAuthenticated, IsAdminOrReadOnly,
+                          IsUserOrReadOnly, IsSuperUser)
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    
+
 
 class APIsend_code(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        confirmation_code = str(RefreshToken.for_user(request.user).access_token)[:7]
+        confirmation_code = str(
+            RefreshToken.for_user(request.user).access_token)[:7]
         serializer = EmailTokenSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(confirmation_code=confirmation_code)
+            #serializer.save()
+            serializer.save(username=request.data['username'], confirmation_code=confirmation_code)
             send_mail(
-               'Регистрация YAMDB',
-                f'Для подтверждения регистрации используйте код подвтерждения: {confirmation_code}',
+                'Регистрация YAMDB',
+                f'Для подтверждения регистрации используйте код подвтерждения:'
+                f'{confirmation_code}',
                 'yamdb@gmail.com',
                 [serializer.data["email"]],
                 fail_silently=False
             )
-            return Response(serializer.data['confirmation_code'], status=status.HTTP_200_OK)
+            return Response(serializer.data['confirmation_code'],
+                            status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
         #elif 'email' not in serializer.data and 'username' not in serializer.data:
         #    return Response("Введите корректные данные", status=status.HTTP_400_BAD_REQUEST)
-        elif User.objects.filter(username=serializer.data["username"]).count() > 1:
-            return Response("пользователь с таким именем уже существует", status=status.HTTP_400_BAD_REQUEST)
-        elif serializer.data['username'] == 'me':
-            return Response("Данный username запрещен", status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        #elif User.objects.filter(
+                #username=serializer.data["username"]).count() > 1:
+        #elif get_object_or_404(User, username=serializer.validated_data["username"]).count() > 1:
+         #   return Response("пользователь с таким именем уже существует",
+         #                   status=status.HTTP_400_BAD_REQUEST)
+        #elif serializer.data['username'] == 'me':
+         #   return Response("Данный username запрещен",
+         #                   status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class APIsend_token(APIView):
     permission_classes = (AllowAny,)
 
-
     def post(self, request):
         serializer = MyTokenObtainPairSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = User.objects.get(username=serializer.validated_data["username"])
         token = RefreshToken.for_user(request.user)
-        if serializer.validated_data["confirmation_code"] == user.confirmation_code:
-            return Response({'token': str(token.access_token)}, status=status.HTTP_201_CREATED)
+        if serializer.is_valid():
+            return Response({'token': str(token.access_token)},
+                            status=status.HTTP_201_CREATED)
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
