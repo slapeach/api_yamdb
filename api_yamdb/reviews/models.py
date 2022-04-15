@@ -1,20 +1,22 @@
-from pyexpat import model
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-ROLE_LIST = [
-    ('user', 'пользователь'),
-    ('admin', 'администратор'),
-    ('moderator', 'модератор')
-]
+USER = 'user'
+ADMIN = 'admin'
+MODERATOR = 'moderator'
+CHOICES = (
+    (USER, 'user'),
+    (ADMIN, 'admin'),
+    (MODERATOR, 'moderator'),
+)
 
 
 class User(AbstractUser):
     bio = models.TextField('Биография', blank=True,)
-    role = models.CharField(max_length=20, choices=ROLE_LIST, default='user')
-    email = models.EmailField(unique=True)
-    username = models.CharField(max_length=40, unique=False)
+    role = models.CharField(max_length=20, choices=CHOICES, default=USER)
+    email = models.EmailField(unique=True, blank=False)
+    username = models.CharField(max_length=40, null=True)
     confirmation_code = models.CharField(max_length=4, blank=True)
     REQUIRED_FIELD = ['username', 'email']
     USERNAME_FIELD = 'id'
@@ -48,7 +50,10 @@ class Title(models.Model):
         Genre, through='TitleGenre', blank=True
     )
     category = models.ForeignKey(
-        Category, on_delete=models.SET_NULL, related_name='titles', blank=True, null=True
+        Category, on_delete=models.SET_NULL,
+        related_name='titles',
+        blank=True,
+        null=True
     )
     description = models.TextField(blank=True, null=True)
     year = models.IntegerField()

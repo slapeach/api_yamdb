@@ -44,7 +44,6 @@ class IsSuperUser(permissions.BasePermission):
         )
 
 
-
 class IsAdminOrReadOnly(permissions.BasePermission):
     """Пермишен для доступа  к изменению контента
        только модераторам или авторам"""

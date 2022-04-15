@@ -1,11 +1,10 @@
 import math
 from django.db.models import Avg
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
+from django.core.exceptions import ValidationError
 
 from reviews.models import User, Review, Comment, Title, Genre, Category
 
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериалайзер модели User"""
@@ -13,20 +12,34 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role')
+        fields = (
+            'username', 'email',
+            'first_name', 'last_name',
+            'bio', 'role'
+        )
 
 
 class EmailTokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username', 'email', 'confirmation_code')
-    
+
+    def validate_username(self, value):
+        if value == 'me':
+            raise ValidationError(message='Данное имя пользователя запрещено')
+        if User.objects.filter(username=value).exists():
+            raise ValidationError(message=f'Пользователь с username={value} уже существует')
+
+
+'''
     def validate(self, data):
         if data['username'] == 'me':
             raise serializers.ValidationError(
                 'Невозможно создать пользователя с таким username'
             )
         return data
+'''
+
 
 class MyTokenObtainPairSerializer(serializers.ModelSerializer):
 
@@ -34,13 +47,23 @@ class MyTokenObtainPairSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'confirmation_code')
 
+    def validate_username(self, value):
+        if not User.objects.filter(username=value).exists():
+            raise ValidationError(message=f'Пользователь с username={value} отсутствует')
+        return value
+
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Review"""
 
     class Meta:
         model = Review
-        fields = ('id', 'text', 'author', 'score', 'pub_date')
+        fields = (
+            'id', 'name',
+            'year', 'rating',
+            'description',
+            'genre', 'category'
+        )
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -64,7 +87,8 @@ class TitleSerializer(serializers.ModelSerializer):
 
     def get_rating(self, obj):
         title_id = obj.id
-        scores = Review.objects.filter(title_id=title_id).aggregate(Avg('score'))
+        scores = Review.objects.filter(
+            title_id=title_id).aggregate(Avg('score'))
         rating = math.ceil(scores.get('score__avg'))
         return rating
 
