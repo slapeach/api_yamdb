@@ -31,16 +31,6 @@ class EmailTokenSerializer(serializers.ModelSerializer):
             raise ValidationError(message=f'Пользователь с username={value} уже существует')
 
 
-'''
-    def validate(self, data):
-        if data['username'] == 'me':
-            raise serializers.ValidationError(
-                'Невозможно создать пользователя с таким username'
-            )
-        return data
-'''
-
-
 class MyTokenObtainPairSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -50,6 +40,11 @@ class MyTokenObtainPairSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         if not User.objects.filter(username=value).exists():
             raise ValidationError(message=f'Пользователь с username={value} отсутствует')
+        return value
+
+    def validate_confirmation_code(self, value):
+        if not User.objects.filter(confirmation_code=value).exists():
+            raise ValidationError(message=f'Код подтверждения некорректен')
         return value
 
 
@@ -77,13 +72,17 @@ class CommentSerializer(serializers.ModelSerializer):
 class TitleSerializer(serializers.ModelSerializer):
     """Сериалайзер модели Title"""
     rating = serializers.SerializerMethodField()
-    rating = serializers.IntegerField()
     category = serializers.StringRelatedField(read_only=True)
     genre = serializers.StringRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Title
-        fields = ('id', 'name', 'year', 'rating', 'description', 'genre', 'category')
+        fields = (
+            'id', 'name',
+            'year', 'rating',
+            'description',
+            'genre', 'category'
+        )
 
     def get_rating(self, obj):
         title_id = obj.id

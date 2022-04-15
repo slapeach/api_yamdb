@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 
+
 USER = 'user'
 ADMIN = 'admin'
 MODERATOR = 'moderator'
@@ -16,10 +17,10 @@ class User(AbstractUser):
     bio = models.TextField('Биография', blank=True,)
     role = models.CharField(max_length=20, choices=CHOICES, default=USER)
     email = models.EmailField(unique=True, blank=False)
-    username = models.CharField(max_length=40, null=True)
-    confirmation_code = models.CharField(max_length=4, blank=True)
+    username = models.CharField(max_length=40, unique=True, null=True)
+    confirmation_code = models.CharField(max_length=10, blank=True)
     REQUIRED_FIELD = ['username', 'email']
-    USERNAME_FIELD = 'id'
+    #USERNAME_FIELD = 'username'
 
     def __str__(self):
         return self.username

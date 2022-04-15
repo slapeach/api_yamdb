@@ -46,7 +46,7 @@ class APIsend_code(APIView):
                 f'Для подтверждения регистрации используйте код подвтерждения:'
                 f'{confirmation_code}',
                 'yamdb@gmail.com',
-                [serializer.data["email"]],
+                [serializer.data['email']],
                 fail_silently=False
             )
             return Response(serializer.data['confirmation_code'],

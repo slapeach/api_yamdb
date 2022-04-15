@@ -30,7 +30,7 @@ class IsUserOrReadOnly(permissions.BasePermission):
     """Пермишен для доступа  к изменению данных пользователя """
 
     def has_object_permission(self, request, view, obj):
-        return obj.email == request.user.email
+        return obj.username == request.user.username
 
 
 class IsSuperUser(permissions.BasePermission):
@@ -49,9 +49,8 @@ class IsAdminOrReadOnly(permissions.BasePermission):
        только модераторам или авторам"""
 
     def has_permission(self, request, view):
-        if request.user.is_authenticated:
-            return (
-                request.user.is_staff
-                or request.user.is_superuser
-                or request.user.role == 'admin'
-            )
+        return (
+            request.method in permissions.SAFE_METHODS
+            or request.user.is_staff
+            or request.user.is_superuser
+        )
