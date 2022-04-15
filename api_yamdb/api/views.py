@@ -1,6 +1,5 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.core.mail import send_mail
@@ -40,7 +39,7 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, IsAdminOrReadOnly, IsUserOrReadOnly, IsSuperUser)
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    
+
 
 class APIsend_code(APIView):
     permission_classes = (AllowAny,)
@@ -54,10 +53,10 @@ class APIsend_code(APIView):
                'Регистрация YAMDB',
                 f'Для подтверждения регистрации используйте код подвтерждения: {confirmation_code}',
                 'yamdb@gmail.com',
-                [serializer.data["email"]],
+                [serializer.data['email']],
                 fail_silently=False
             )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -67,7 +66,7 @@ class APIsend_token(APIView):
 
     def post(self, request):
         serializer = MyTokenObtainPairSerializer(data=request.data)
-        if serializer.is_valid() and User.objects.filter(confirmation_code=serializer.data["confirmation_code"]):
+        if serializer.is_valid() and User.objects.filter(confirmation_code=serializer.data['confirmation_code']):
             return Response(get_tokens_for_user(request.user), status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
