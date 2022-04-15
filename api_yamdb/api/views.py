@@ -12,6 +12,8 @@ from rest_framework.pagination import LimitOffsetPagination
 from reviews.models import User, Title, Review, Comment
 from .serializers import UserSerializer, EmailTokenSerializer, ReviewSerializer, CommentSerializer, MyTokenObtainPairSerializer
 from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins, filters
+
 from rest_framework.pagination import LimitOffsetPagination
 
 from reviews.models import User, Title, Review, Comment, Category, Genre
@@ -31,14 +33,6 @@ from rest_framework_simplejwt.views import (
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
-def get_tokens_for_user(user):
-    refresh = RefreshToken.for_user(user)
-
-    return {
-        #'refresh': str(refresh),
-        'token': str(refresh.access_token),
-    }
-
 
 class UserViewSet(viewsets.ModelViewSet):
     """Вьюсет сериалайзера UserSerializer"""
@@ -51,7 +45,7 @@ class APIsend_code(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        confirmation_code = 1177
+        confirmation_code = str(RefreshToken.for_user(request.user).access_token)[:7]
         serializer = EmailTokenSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(confirmation_code=confirmation_code)
@@ -62,7 +56,13 @@ class APIsend_code(APIView):
                 [serializer.data["email"]],
                 fail_silently=False
             )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.data['confirmation_code'], status=status.HTTP_200_OK)
+        #elif 'email' not in serializer.data and 'username' not in serializer.data:
+        #    return Response("Введите корректные данные", status=status.HTTP_400_BAD_REQUEST)
+        elif User.objects.filter(username=serializer.data["username"]).count() > 1:
+            return Response("пользователь с таким именем уже существует", status=status.HTTP_400_BAD_REQUEST)
+        elif serializer.data['username'] == 'me':
+            return Response("Данный username запрещен", status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -70,10 +70,14 @@ class APIsend_code(APIView):
 class APIsend_token(APIView):
     permission_classes = (AllowAny,)
 
+
     def post(self, request):
         serializer = MyTokenObtainPairSerializer(data=request.data)
-        if serializer.is_valid() and User.objects.filter(confirmation_code=serializer.data["confirmation_code"]):
-            return Response(get_tokens_for_user(request.user), status=status.HTTP_201_CREATED)
+        serializer.is_valid(raise_exception=True)
+        user = User.objects.get(username=serializer.validated_data["username"])
+        token = RefreshToken.for_user(request.user)
+        if serializer.validated_data["confirmation_code"] == user.confirmation_code:
+            return Response({'token': str(token.access_token)}, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -122,7 +126,11 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет сериалайзера UserSerializer"""
-    pass
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+    permission_classes = [IsAdminOrReadOnly]
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('name', 'year', 'genre', 'category')
 
 
 class CategoryViewSet(mixins.CreateModelMixin,
@@ -133,6 +141,8 @@ class CategoryViewSet(mixins.CreateModelMixin,
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
 
 class GenreViewSet(mixins.CreateModelMixin,
@@ -143,3 +153,5 @@ class GenreViewSet(mixins.CreateModelMixin,
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [IsAdminOrReadOnly]
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
