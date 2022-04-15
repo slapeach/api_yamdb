@@ -43,10 +43,9 @@ class APIsend_code(APIView):
 
     def post(self, request):
         confirmation_code = str(
-            RefreshToken.for_user(request.user).access_token)[:7]
+            RefreshToken.for_user(request.user).access_token)[:9]
         serializer = EmailTokenSerializer(data=request.data)
         if serializer.is_valid():
-            #serializer.save()
             serializer.save(username=request.data['username'], confirmation_code=confirmation_code)
             send_mail(
                 'Регистрация YAMDB',
@@ -79,14 +78,37 @@ class APIsend_token(APIView):
 
     def post(self, request):
         serializer = MyTokenObtainPairSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        #serializer.is_valid(raise_exception=False)
         token = RefreshToken.for_user(request.user)
-        if serializer.is_valid():
+        if User.objects.filter(confirmation_code=request.data['confirmation_code']).all().exists():
             return Response({'token': str(token.access_token)},
                             status=status.HTTP_201_CREATED)
         else:
-            return Response(serializer.errors,
+            return Response('ошибка',
                             status=status.HTTP_400_BAD_REQUEST)
+
+
+class APIsend_token111(APIView):
+    permission_classes = (AllowAny,)
+    def post(self, request):
+        serializer = MyTokenObtainPairSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            user = User.objects.get(
+                username=serializer.validated_data["username"]
+            )
+        except User.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        if (
+            serializer.validated_data["confirmation_code"]
+            == user.confirmation_code
+        ):
+            token = RefreshToken.for_user(request.user).access_token
+            return Response(
+                {"token": str(token)},
+                status=status.HTTP_201_CREATED,
+            )
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):

@@ -17,10 +17,10 @@ class User(AbstractUser):
     bio = models.TextField('Биография', blank=True,)
     role = models.CharField(max_length=20, choices=CHOICES, default=USER)
     email = models.EmailField(unique=True, blank=False)
-    username = models.CharField(max_length=40, null=True)
+    username = models.CharField(max_length=40, unique=True, null=False)
     confirmation_code = models.CharField(max_length=10, blank=True)
     REQUIRED_FIELD = ['username', 'email']
-    USERNAME_FIELD = 'id'
+    #USERNAME_FIELD = 'username'
 
     def __str__(self):
         return self.username
