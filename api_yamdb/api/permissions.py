@@ -24,7 +24,26 @@ class IsModeratorOrReadOnly(permissions.BasePermission):
             request.method in permissions.SAFE_METHODS
             or request.user.role == 'moderator'
         )
+    
 
+class IsUserOrReadOnly(permissions.BasePermission):
+    """Пермишен для доступа  к изменению данных пользователя """
+
+    def has_object_permission(self, request, view, obj):
+        return obj.email == request.user.email
+
+
+class IsSuperUser(permissions.BasePermission):
+    """Пермишен для доступа суперпользователю
+    к изменению данных пользователей"""
+
+    def has_permission(self, request, view):
+        return (
+            #request.method == 'DELETE' and
+            request.user.is_superuser
+        )
+
+        
 
 class IsAdminOrReadOnly(permissions.BasePermission):
     """Пермишен для доступа  к изменению контента
