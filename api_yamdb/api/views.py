@@ -21,7 +21,7 @@ from .serializers import (UserSerializer, ReviewSerializer,
 from .permissions import (IsAuthorOrReadOnly, IsUserOrReadOnly,
                           IsModeratorOrReadOnly, IsAdminOrReadOnly,
                           IsSuperUser)
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework import status
 from rest_framework.views import APIView
 
@@ -114,9 +114,7 @@ class APIsend_token111(APIView):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = [
-        IsAuthorOrReadOnly, IsAdminOrReadOnly, IsModeratorOrReadOnly
-    ]
+    permission_classes = [IsAuthenticatedOrReadOnly & IsAuthorOrReadOnly]
     pagination_class = PageNumberPagination
 
     def get_queryset(self):
@@ -159,7 +157,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет сериалайзера UserSerializer"""
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('name', 'year', 'genre', 'category')
 

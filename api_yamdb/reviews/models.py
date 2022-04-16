@@ -16,9 +16,9 @@ CHOICES = (
 class User(AbstractUser):
     bio = models.TextField('Биография', blank=True,)
     role = models.CharField(max_length=20, choices=CHOICES, default=USER)
-    email = models.EmailField(unique=True, blank=False)
-    username = models.CharField(max_length=40, unique=True, null=True)
-    confirmation_code = models.CharField(max_length=10, blank=True)
+    email = models.EmailField(unique=True)
+    username = models.CharField(max_length=40, unique=True)
+    confirmation_code = models.CharField(max_length=10)
     REQUIRED_FIELD = ['username', 'email']
     #USERNAME_FIELD = 'username'
 
@@ -51,7 +51,7 @@ class Title(models.Model):
         Genre, through='TitleGenre', blank=True
     )
     category = models.ForeignKey(
-        Category, on_delete=models.SET_NULL, related_name='titles', blank=True, null=True
+        Category, on_delete=models.SET_NULL, related_name='titles', null=True
     )
     description = models.TextField(blank=True, null=True)
     year = models.IntegerField()
