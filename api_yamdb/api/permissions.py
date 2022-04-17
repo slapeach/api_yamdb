@@ -49,9 +49,8 @@ class IsAdminOrReadOnly(permissions.BasePermission):
        только модераторам или авторам"""
 
     def has_permission(self, request, view):
-        return (
-            request.method in permissions.SAFE_METHODS
-            or request.user.is_staff
-            or request.user.is_superuser
-        )
+        return request.user.is_staff or (request.user.role == 'admin')
+
+    def has_object_permission(self, request, view, obj):
+        return request.user.is_staff or (request.user.role == 'admin')
 
