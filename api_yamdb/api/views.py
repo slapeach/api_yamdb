@@ -21,11 +21,9 @@ from .serializers import (UserSerializer, ReviewSerializer,
 from .permissions import (IsAuthorOrReadOnly, IsUserOrReadOnly,
                           IsModeratorOrReadOnly, IsAdminOrReadOnly,
                           IsSuperUser)
-from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly, IsAdminUser, IsAuthenticated
 from rest_framework import status
 from rest_framework.views import APIView
-
-
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from django.shortcuts import get_object_or_404
@@ -53,10 +51,10 @@ class APIsend_code(APIView):
                 f'Для подтверждения регистрации используйте код подвтерждения:'
                 f'{confirmation_code}',
                 'yamdb@gmail.com',
-                [serializer.data["email"]],
+                [serializer.data['email']],
                 fail_silently=False
             )
-            return Response(serializer.data['confirmation_code'],
+            return Response(serializer.data,
                             status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors,
@@ -73,7 +71,6 @@ class APIsend_code(APIView):
          #                   status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class APIsend_token(APIView):
     permission_classes = (AllowAny,)
 
@@ -81,9 +78,9 @@ class APIsend_token(APIView):
         serializer = MyTokenObtainPairSerializer(data=request.data)
         #serializer.is_valid(raise_exception=False)
         token = RefreshToken.for_user(request.user)
-        if User.objects.filter(confirmation_code=request.data['confirmation_code']).all().exists():
+        if User.objects.filter(confirmation_code=request.data['confirmation_code']).exists():
             return Response({'token': str(token.access_token)},
-                            status=status.HTTP_201_CREATED)
+                            status=status.HTTP_200_OK)
         else:
             return Response('ошибка',
                             status=status.HTTP_400_BAD_REQUEST)

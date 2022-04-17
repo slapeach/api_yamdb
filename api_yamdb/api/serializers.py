@@ -23,21 +23,13 @@ class UserSerializer(serializers.ModelSerializer):
 class EmailTokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'email', 'confirmation_code')
+        fields = ('username', 'email')
 
     def validate_username(self, value):
         if value == 'me':
             raise ValidationError(message='Данное имя пользователя запрещено')
         if User.objects.filter(username=value).exists():
             raise ValidationError(message=f'Пользователь с username={value} уже существует')
-        if value == '':
-            raise ValidationError(message='Поле username обязательно для заполнения!')
-
-    # def validate_email(self, value):
-    #     # if User.objects.filter(email=value).exists():
-    #     #     raise ValidationError(message=f'Пользователь с email={value} уже существует')
-    #     if value == '':
-    #         raise ValidationError(message='Поле email обязательно для заполнения!')
 
 
 class MyTokenObtainPairSerializer(serializers.ModelSerializer):
@@ -104,14 +96,14 @@ class TitleSerializer(serializers.ModelSerializer):
             'genre', 'category'
         )
 
-    def create(self, validated_data):
-        genres = validated_data.pop('genre')
-        title = Title.objects.create(**validated_data)
-        for genre in genres:
-            current_genre = Genre.objects.get(name=genre)
-            TitleGenre.objects.create(
-                genre=current_genre, title=title
-            )
+    # def create(self, validated_data):
+    #     genres = validated_data.pop('genre')
+    #     title = Title.objects.create(**validated_data)
+    #     for genre in genres:
+    #         current_genre = Genre.objects.get(name=genre)
+    #         TitleGenre.objects.create(
+    #             genre=current_genre, title=title
+            # )
 
     def get_rating(self, obj):
         title_id = obj.id
