@@ -12,16 +12,16 @@ app_name = 'api'
 
 router = routers.DefaultRouter()
 r = router.register(
-    r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)', ReviewViewSet, basename='reviews'
+    r'titles/(?P<title_id>\d+)/reviews', ReviewViewSet, basename='reviews'
 )
 router.register(
-    r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments/(?P<comment_id>\d+)',
+    r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
     CommentViewSet, basename='comments'
 )
 router.register(r'users', UserViewSet)
-router.register(r'titles', TitleViewSet)
-router.register(r'genres', GenreViewSet)
-router.register(r'categories', CategoryViewSet)
+router.register(r'titles', TitleViewSet, basename='titles')
+router.register(r'genres', GenreViewSet, basename='genres')
+router.register(r'categories', CategoryViewSet, basename='categories')
 
 urlpatterns = [
     path('v1/auth/signup/', APIsend_code.as_view()),

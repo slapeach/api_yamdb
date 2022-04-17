@@ -5,7 +5,7 @@ from reviews.models import User, Title, Review, Comment
 from rest_framework import viewsets, mixins, filters
 from rest_framework.pagination import PageNumberPagination
 from reviews.models import User, Title, Review, Comment, Category, Genre
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -15,7 +15,8 @@ from .serializers import (UserSerializer, ReviewSerializer,
                           CommentSerializer, TitleSerializer,
                           CategorySerializer, GenreSerializer,
                           EmailTokenSerializer,
-                          MyTokenObtainPairSerializer)
+                          MyTokenObtainPairSerializer,
+                          PostTitleSerializer)
 from .permissions import (IsAuthorOrReadOnly, IsUserOrReadOnly,
                           IsModeratorOrReadOnly, IsAdminOrReadOnly,
                           IsSuperUser)
@@ -33,13 +34,11 @@ class APIsend_code(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        confirmation_code = str(
-            RefreshToken.for_user(request.user).access_token)[:7]
+        confirmation_code = '012345678'
         serializer = EmailTokenSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(
                 username=request.data['username'],
-                confirmation_code=confirmation_code
             )
             send_mail(
                 'Регистрация YAMDB',
@@ -49,7 +48,7 @@ class APIsend_code(APIView):
                 [serializer.data['email']],
                 fail_silently=False
             )
-            return Response(serializer.data['confirmation_code'],
+            return Response(serializer.data,
                             status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors,
@@ -61,11 +60,12 @@ class APIsend_token(APIView):
 
     def post(self, request):
         serializer = MyTokenObtainPairSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        token = RefreshToken.for_user(request.user)
         if serializer.is_valid():
-            return Response({'token': str(token.access_token)},
-                            status=status.HTTP_201_CREATED)
+            token = RefreshToken.for_user(request.user).access_token
+            return Response(
+                {"token": str(token)},
+                status=status.HTTP_200_OK,
+            )
         else:
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
@@ -74,7 +74,8 @@ class APIsend_token(APIView):
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = [
-        IsAuthorOrReadOnly, IsAdminOrReadOnly, IsModeratorOrReadOnly
+        IsAuthenticatedOrReadOnly
+        # IsAdminOrReadOnly, IsModeratorOrReadOnly
     ]
     pagination_class = PageNumberPagination
 
@@ -116,11 +117,24 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет сериалайзера UserSerializer"""
-    queryset = Title.objects.all()
-    serializer_class = TitleSerializer
+    # queryset = Title.objects.all()
+    # serializer_class = TitleSerializer
+    # permission_classes = IsAuthenticatedOrReadOnly
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('name', 'year', 'genre', 'category')
+
+    def get_queryset(self):
+        queryset = Title.objects.all()
+        serializer = TitleSerializer(queryset, many=True)
+        return Response(serializer)
+    
+    def post(self, request):
+        serializer = PostTitleSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CategoryViewSet(mixins.CreateModelMixin,

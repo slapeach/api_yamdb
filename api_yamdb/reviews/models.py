@@ -16,9 +16,9 @@ CHOICES = (
 class User(AbstractUser):
     bio = models.TextField('Биография', blank=True,)
     role = models.CharField(max_length=20, choices=CHOICES, default=USER)
-    email = models.EmailField(unique=True, blank=False)
-    username = models.CharField(max_length=40, unique=True, null=True)
-    confirmation_code = models.CharField(max_length=10, blank=True)
+    email = models.EmailField(unique=True)
+    username = models.CharField(max_length=40, unique=True)
+    confirmation_code = models.CharField(max_length=10)
     REQUIRED_FIELD = ['username', 'email']
     #USERNAME_FIELD = 'username'
 

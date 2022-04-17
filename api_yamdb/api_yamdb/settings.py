@@ -1,8 +1,6 @@
 import os
 from datetime import timedelta
 
-from datetime import timedelta
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -27,10 +25,12 @@ INSTALLED_APPS = [
     'rest_framework',
     'djoser',
     'django_filters',
-    'rest_framework.authtoken',
     'api.apps.ApiConfig',
     'reviews.apps.ReviewsConfig',
 ]
+
+# 'rest_framework.authtoken',
+# 'rest_framework_simplejwt',
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
