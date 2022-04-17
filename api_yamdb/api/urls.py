@@ -6,9 +6,6 @@ from .views import (ReviewViewSet, CommentViewSet,
                     CategoryViewSet, TitleViewSet,
                     APIsend_code, APIsend_token, APIPatch_me)
 
-from rest_framework_simplejwt.views import TokenObtainPairView 
-
-
 app_name = 'api'
 
 
@@ -27,8 +24,7 @@ router.register(r'categories', CategoryViewSet, basename='categories')
 
 urlpatterns = [
     path('v1/auth/signup/', APIsend_code.as_view()),
-    # path('v1/auth/token/', APIsend_token.as_view(), name='token_obtain_pair'),
-    path('v1/auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('v1/auth/token/', APIsend_token.as_view(), name='token_obtain_pair'),
     path('v1/users/me', APIPatch_me.as_view()),
     path('v1/', include(router.urls)),
 ]
