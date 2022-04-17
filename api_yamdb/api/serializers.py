@@ -1,4 +1,5 @@
 import math
+import datetime
 from django.db.models import Avg
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
@@ -24,31 +25,12 @@ class EmailTokenSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'email')
 
-    def validate_username(self, value):
-        if value == 'me':
-            raise ValidationError(message='Данное имя пользователя запрещено')
-        if User.objects.filter(username=value).exists():
-            raise ValidationError(message=f'Пользователь с username={value} уже существует')
-
-
 
 class MyTokenObtainPairSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("username", "confirmation_code")
-    
-    def validate_username(self, value):
-        if not User.objects.filter(username=value).exists():
-            raise ValidationError(message=f'Пользователь с username={value} отсутствует')
-        return value
-    
-    def validate_confirmation_code(self, value):
-        if not User.objects.filter(confirmation_code=value).exists():
-            raise ValidationError(message=f'Код подтверждения некорректен')
-        return value
-
-
+        fields = ('username', 'confirmation_code')
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -67,29 +49,6 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ('id', 'text', 'author', 'pub_date')
 
 
-class TitleSerializer(serializers.ModelSerializer):
-    """Сериалайзер модели Title"""
-    rating = serializers.SerializerMethodField()
-    category = serializers.StringRelatedField(read_only=True)
-    genre = serializers.StringRelatedField(many=True, read_only=True)
-
-    class Meta:
-        model = Title
-        fields = (
-            'id', 'name',
-            'year', 'rating',
-            'description',
-            'genre', 'category'
-        )
-
-    def get_rating(self, obj):
-        title_id = obj.id
-        scores = Review.objects.filter(
-            title_id=title_id).aggregate(Avg('score'))
-        rating = math.ceil(scores.get('score__avg'))
-        return rating
-
-
 class GenreSerializer(serializers.ModelSerializer):
     """Сериалайзер модели Genre"""
 
@@ -104,3 +63,47 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ('name', 'slug',)
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    """Сериалайзер модели Title"""
+    rating = serializers.SerializerMethodField(read_only=True)
+    category = CategorySerializer()
+    genre = GenreSerializer(many=True)
+
+    class Meta:
+        model = Title
+        fields = (
+            'id', 'name',
+            'year', 'rating',
+            'description',
+            'genre', 'category'
+        )
+
+    def get_rating(self, obj):
+        title_id = obj.id
+        reviews = Review.objects.filter(title_id=title_id)
+        if reviews.count() > 0:
+            scores = reviews.aggregate(Avg('score'))
+            rating = math.ceil(scores.get('score__avg'))
+            return rating
+        return None
+
+    def validate_year(self, value):
+        now = datetime.datetime.now()
+        if value > now.year:
+            raise ValidationError(message=f'Укажите корректный год выпуска')
+        return value
+
+
+class TitleCreateSerializer(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(
+        slug_field='slug', queryset=Category.objects.all()
+    )
+    genre = serializers.SlugRelatedField(
+        slug_field='slug', many=True, queryset=Genre.objects.all()
+    )
+
+    class Meta:
+        model = Title
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category')
