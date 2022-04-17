@@ -22,7 +22,7 @@ class UserSerializer(serializers.ModelSerializer):
 class EmailTokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'email', 'confirmation_code')
+        fields = ('username', 'email')
 
     def validate_username(self, value):
         if value == 'me':
@@ -47,6 +47,8 @@ class MyTokenObtainPairSerializer(serializers.ModelSerializer):
         if not User.objects.filter(confirmation_code=value).exists():
             raise ValidationError(message=f'Код подтверждения некорректен')
         return value
+
+
 
 
 class ReviewSerializer(serializers.ModelSerializer):

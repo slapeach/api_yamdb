@@ -1,3 +1,7 @@
+import random
+import string
+import secrets
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 
@@ -21,7 +25,7 @@ from .serializers import (UserSerializer, ReviewSerializer,
 from .permissions import (IsAuthorOrReadOnly, IsUserOrReadOnly,
                           IsModeratorOrReadOnly, IsAdminOrReadOnly,
                           IsSuperUser)
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework import status
 from rest_framework.views import APIView
 
@@ -30,21 +34,32 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from django.shortcuts import get_object_or_404
 
+import random
+
 
 class UserViewSet(viewsets.ModelViewSet):
     """Вьюсет сериалайзера UserSerializer"""
-    permission_classes = (IsAdminOrReadOnly,
-                          IsUserOrReadOnly, IsSuperUser)
+    permission_classes = (IsAdminUser, )
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    lookup_field = 'username'
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)
+
+    def retrieve(self, request, username=None):
+        queryset = User.objects.all()
+        user = get_object_or_404(queryset, username=username)
+        serializer = UserSerializer(user)
+        return Response(serializer.data,
+                        status=status.HTTP_200_OK)
+
 
 
 class APIsend_code(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        confirmation_code = str(
-            RefreshToken.for_user(request.user).access_token)[:9]
+        confirmation_code = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(9))
         serializer = EmailTokenSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(username=request.data['username'], confirmation_code=confirmation_code)
@@ -56,32 +71,19 @@ class APIsend_code(APIView):
                 [serializer.data["email"]],
                 fail_silently=False
             )
-            return Response(serializer.data['confirmation_code'],
+            return Response(serializer.data,
                             status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
-        #elif 'email' not in serializer.data and 'username' not in serializer.data:
-        #    return Response("Введите корректные данные", status=status.HTTP_400_BAD_REQUEST)
-        #elif User.objects.filter(
-                #username=serializer.data["username"]).count() > 1:
-        #elif get_object_or_404(User, username=serializer.validated_data["username"]).count() > 1:
-         #   return Response("пользователь с таким именем уже существует",
-         #                   status=status.HTTP_400_BAD_REQUEST)
-        #elif serializer.data['username'] == 'me':
-         #   return Response("Данный username запрещен",
-         #                   status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class APIsend_token(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        serializer = MyTokenObtainPairSerializer(data=request.data)
-        #serializer.is_valid(raise_exception=False)
         token = RefreshToken.for_user(request.user)
-        if User.objects.filter(confirmation_code=request.data['confirmation_code']).all().exists():
+        if User.objects.filter(username=request.data['username'], confirmation_code=request.data['confirmation_code']).exists():
             return Response({'token': str(token.access_token)},
                             status=status.HTTP_201_CREATED)
         else:
@@ -91,25 +93,37 @@ class APIsend_token(APIView):
 
 class APIsend_token111(APIView):
     permission_classes = (AllowAny,)
+    
     def post(self, request):
         serializer = MyTokenObtainPairSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
-            user = User.objects.get(
-                username=serializer.validated_data["username"]
-            )
+            user = User.objects.get(username=request.data['username'])
         except User.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        if (
-            serializer.validated_data["confirmation_code"]
-            == user.confirmation_code
-        ):
+        if serializer.validated_data["confirmation_code"] == user.confirmation_code:
             token = RefreshToken.for_user(request.user).access_token
-            return Response(
-                {"token": str(token)},
-                status=status.HTTP_201_CREATED,
-            )
+            return Response({'token': str(token)}, status=status.HTTP_200_OK)
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class APIPatch_me(APIView):
+    permission_classes = (IsUserOrReadOnly,)
+    
+    def get(self, request):
+        user = get_object_or_404(User, username=request.user.username)
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data,
+                            status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):

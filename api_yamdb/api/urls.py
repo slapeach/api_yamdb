@@ -6,7 +6,7 @@ from .views import ReviewViewSet, CommentViewSet, UserViewSet
 from .views import (ReviewViewSet, CommentViewSet,
                     UserViewSet, GenreViewSet,
                     CategoryViewSet, TitleViewSet,
-                    APIsend_code, APIsend_token)
+                    APIsend_code, APIsend_token, APIPatch_me)
 
 
 app_name = 'api'
@@ -20,7 +20,7 @@ router.register(
     r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments/(?P<comment_id>\d+)',
     CommentViewSet, basename='comments'
 )
-router.register(r'users', UserViewSet)
+router.register(r'users', UserViewSet, basename='user')
 router.register(r'titles', TitleViewSet)
 router.register(r'genres', GenreViewSet)
 router.register(r'categories', CategoryViewSet)
@@ -28,5 +28,6 @@ router.register(r'categories', CategoryViewSet)
 urlpatterns = [
     path('v1/auth/signup/', APIsend_code.as_view()),
     path('v1/auth/token/', APIsend_token.as_view(), name='token_obtain_pair'),
+    path('v1/users/me', APIPatch_me.as_view()),
     path('v1/', include(router.urls)),
 ]
