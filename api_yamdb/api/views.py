@@ -1,3 +1,6 @@
+import string
+import secrets
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
 from django.core.mail import send_mail
@@ -24,17 +27,29 @@ from .permissions import (IsAuthorOrReadOnly, IsUserOrReadOnly,
 
 class UserViewSet(viewsets.ModelViewSet):
     """Вьюсет сериалайзера UserSerializer"""
-    permission_classes = (IsAuthenticated, IsAdminOrReadOnly,
-                          IsUserOrReadOnly, IsSuperUser)
+    permission_classes = (IsAuthenticated, IsAdminOrReadOnly, )
+    #permission_classes = (AllowAny, )
+    pagination_class = PageNumberPagination
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    lookup_field = 'username'
+    filter_backends =[DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ('username',)
+    search_fields = ['username']
+
+    def retrieve(self, request, username=None):
+        queryset = User.objects.all()
+        user = get_object_or_404(queryset, username=username)
+        serializer = UserSerializer(user)
+        return Response(serializer.data,
+                        status=status.HTTP_200_OK)
 
 
 class APIsend_code(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        confirmation_code = '012345678'
+        confirmation_code = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(9))
         serializer = EmailTokenSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(
@@ -42,7 +57,8 @@ class APIsend_code(APIView):
             )
             send_mail(
                 'Регистрация YAMDB',
-                f'Для подтверждения регистрации используйте код подвтерждения:'
+                f'Для подтверждения регистрации'
+                f'используйте код подвтерждения:'
                 f'{confirmation_code}',
                 'yamdb@gmail.com',
                 [serializer.data['email']],
@@ -59,13 +75,45 @@ class APIsend_token(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
+        token = RefreshToken.for_user(request.user)
+        if User.objects.filter(username=request.data['username'], confirmation_code=request.data['confirmation_code']).exists():
+            return Response({'token': str(token.access_token)},
+                            status=status.HTTP_201_CREATED)
+        else:
+            return Response('ошибка',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+
+class APIsend_token111(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
         serializer = MyTokenObtainPairSerializer(data=request.data)
-        if serializer.is_valid():
+        serializer.is_valid(raise_exception=True)
+        try:
+            user = User.objects.get(username=request.data['username'])
+        except User.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        if serializer.validated_data["confirmation_code"] == user.confirmation_code:
             token = RefreshToken.for_user(request.user).access_token
-            return Response(
-                {"token": str(token)},
-                status=status.HTTP_200_OK,
-            )
+            return Response({'token': str(token)}, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class APIPatch_me(APIView):
+    permission_classes = (IsUserOrReadOnly,)
+
+    def get(self, request):
+        user = get_object_or_404(User, username=request.user.username)
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data,
+                            status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
@@ -117,10 +165,9 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет сериалайзера UserSerializer"""
-    # queryset = Title.objects.all()
-    # serializer_class = TitleSerializer
-    # permission_classes = IsAuthenticatedOrReadOnly
-    permission_classes = [IsAdminOrReadOnly]
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+    permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('name', 'year', 'genre', 'category')
 
@@ -144,7 +191,7 @@ class CategoryViewSet(mixins.CreateModelMixin,
     """Вьюсет сериалайзера UserSerializer"""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
@@ -156,6 +203,6 @@ class GenreViewSet(mixins.CreateModelMixin,
     """Вьюсет сериалайзера UserSerializer"""
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)

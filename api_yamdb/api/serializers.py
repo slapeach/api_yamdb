@@ -34,7 +34,6 @@ class EmailTokenSerializer(serializers.ModelSerializer):
                 message=f'Пользователь с username={value} уже существует'
             )
 
-
 class MyTokenObtainPairSerializer(serializers.ModelSerializer):
 
     class Meta:
