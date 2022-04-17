@@ -1,4 +1,3 @@
-import random
 import string
 import secrets
 
@@ -25,7 +24,7 @@ from .serializers import (UserSerializer, ReviewSerializer,
 from .permissions import (IsAuthorOrReadOnly, IsUserOrReadOnly,
                           IsModeratorOrReadOnly, IsAdminOrReadOnly,
                           IsSuperUser)
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
+from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework import status
 from rest_framework.views import APIView
 
@@ -33,8 +32,6 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from django.shortcuts import get_object_or_404
-
-import random
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -54,7 +51,6 @@ class UserViewSet(viewsets.ModelViewSet):
                         status=status.HTTP_200_OK)
 
 
-
 class APIsend_code(APIView):
     permission_classes = (AllowAny,)
 
@@ -65,7 +61,8 @@ class APIsend_code(APIView):
             serializer.save(username=request.data['username'], confirmation_code=confirmation_code)
             send_mail(
                 'Регистрация YAMDB',
-                f'Для подтверждения регистрации используйте код подвтерждения:'
+                f'Для подтверждения регистрации'
+                f'используйте код подвтерждения:'
                 f'{confirmation_code}',
                 'yamdb@gmail.com',
                 [serializer.data["email"]],
@@ -93,7 +90,7 @@ class APIsend_token(APIView):
 
 class APIsend_token111(APIView):
     permission_classes = (AllowAny,)
-    
+
     def post(self, request):
         serializer = MyTokenObtainPairSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -109,7 +106,7 @@ class APIsend_token111(APIView):
 
 class APIPatch_me(APIView):
     permission_classes = (IsUserOrReadOnly,)
-    
+
     def get(self, request):
         user = get_object_or_404(User, username=request.user.username)
         serializer = UserSerializer(user)

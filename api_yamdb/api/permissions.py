@@ -39,7 +39,6 @@ class IsSuperUser(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return (
-            #request.method == 'DELETE' and
             request.user.is_superuser
         )
 
@@ -54,4 +53,3 @@ class IsAdminOrReadOnly(permissions.BasePermission):
             or request.user.is_staff
             or request.user.is_superuser
         )
-
