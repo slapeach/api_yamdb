@@ -42,10 +42,10 @@ class MyTokenObtainPairSerializer(serializers.ModelSerializer):
         if not User.objects.filter(username=value).exists():
             raise ValidationError(message=f'Пользователь с username={value} отсутствует')
         return value
-    
+
     def validate_confirmation_code(self, value):
         if not User.objects.filter(confirmation_code=value).exists():
-            raise ValidationError(message=f'Код подтверждения некорректен')
+            raise ValidationError(message='Код подтверждения некорректен')
         return value
 
 

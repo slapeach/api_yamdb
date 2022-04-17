@@ -22,7 +22,6 @@ class User(AbstractUser):
     is_activ = models.BooleanField(default=True)
 
     REQUIRED_FIELD = ['username', 'email']
-    #USERNAME_FIELD = 'username'
 
     def __str__(self):
         return self.username
