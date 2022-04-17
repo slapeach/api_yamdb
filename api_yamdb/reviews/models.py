@@ -67,8 +67,8 @@ class Title(models.Model):
     category = models.ForeignKey(
         Category, on_delete=models.SET_NULL, related_name='titles', null=True
     )
-    description = models.TextField(blank=True, null=True)
-    year = models.IntegerField()
+    description = models.TextField(blank=True)
+    year = models.PositiveSmallIntegerField()
 
     def __str__(self):
         return self.name

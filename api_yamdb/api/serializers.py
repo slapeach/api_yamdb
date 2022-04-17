@@ -84,8 +84,8 @@ class CategorySerializer(serializers.ModelSerializer):
 class TitleSerializer(serializers.ModelSerializer):
     """Сериалайзер модели Title"""
     rating = serializers.SerializerMethodField(read_only=True)
-    # category = CategorySerializer()
-    # genre = GenreSerializer(many=True)
+    category = CategorySerializer()
+    genre = GenreSerializer(many=True)
 
     class Meta:
         model = Title
@@ -96,15 +96,6 @@ class TitleSerializer(serializers.ModelSerializer):
             'genre', 'category'
         )
 
-    # def create(self, validated_data):
-    #     genres = validated_data.pop('genre')
-    #     title = Title.objects.create(**validated_data)
-    #     for genre in genres:
-    #         current_genre = Genre.objects.get(name=genre)
-    #         TitleGenre.objects.create(
-    #             genre=current_genre, title=title
-            # )
-
     def get_rating(self, obj):
         title_id = obj.id
         reviews = Review.objects.filter(title_id=title_id)
@@ -112,10 +103,23 @@ class TitleSerializer(serializers.ModelSerializer):
             scores = reviews.aggregate(Avg('score'))
             rating = math.ceil(scores.get('score__avg'))
             return rating
-        return 0
+        return None
     
     def validate_year(self, value):
         now = datetime.datetime.now()
         if value > now.year:
             raise ValidationError(message=f'Укажите корректный год выпуска')
         return value
+
+
+class TitleCreateSerializer(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(
+        slug_field='slug', queryset=Category.objects.all()
+    )
+    genre = serializers.SlugRelatedField(
+        slug_field='slug', many=True, queryset=Genre.objects.all()
+    )
+
+    class Meta:
+        model = Title
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category')

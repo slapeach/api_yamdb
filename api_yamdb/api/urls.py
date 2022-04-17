@@ -1,12 +1,12 @@
 from django.urls import path, include
 from rest_framework import routers
 
-from .views import ReviewViewSet, CommentViewSet, UserViewSet
-
 from .views import (ReviewViewSet, CommentViewSet,
                     UserViewSet, GenreViewSet,
                     CategoryViewSet, TitleViewSet,
                     APIsend_code, APIsend_token, APIPatch_me)
+
+from rest_framework_simplejwt.views import TokenObtainPairView 
 
 
 app_name = 'api'
@@ -21,13 +21,14 @@ router.register(
     CommentViewSet, basename='comments'
 )
 router.register(r'users', UserViewSet, basename='user')
-router.register(r'titles', TitleViewSet)
-router.register(r'genres', GenreViewSet)
-router.register(r'categories', CategoryViewSet)
+router.register(r'titles', TitleViewSet, basename='titles')
+router.register(r'genres', GenreViewSet, basename='genres')
+router.register(r'categories', CategoryViewSet, basename='categories')
 
 urlpatterns = [
     path('v1/auth/signup/', APIsend_code.as_view()),
-    path('v1/auth/token/', APIsend_token.as_view(), name='token_obtain_pair'),
+    # path('v1/auth/token/', APIsend_token.as_view(), name='token_obtain_pair'),
+    path('v1/auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('v1/users/me', APIPatch_me.as_view()),
     path('v1/', include(router.urls)),
 ]
