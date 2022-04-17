@@ -40,7 +40,6 @@ import random
 class UserViewSet(viewsets.ModelViewSet):
     """Вьюсет сериалайзера UserSerializer"""
     permission_classes = (IsAuthenticated, IsAdminOrReadOnly, )
-    #permission_classes = (AllowAny, )
     pagination_class = PageNumberPagination
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -111,7 +110,7 @@ class APIsend_token111(APIView):
 
 
 class APIPatch_me(APIView):
-    permission_classes = (IsUserOrReadOnly,)
+    permission_classes = (IsAuthenticated, IsUserOrReadOnly, IsAdminOrReadOnly)
     
     def get(self, request):
         user = get_object_or_404(User, username=request.user.username)
