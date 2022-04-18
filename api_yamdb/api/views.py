@@ -17,13 +17,18 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import User, Title, Review, Comment, Category, Genre
 from .serializers import (UserSerializer, ReviewSerializer,
                           CommentSerializer, TitleSerializer,
-                          CategorySerializer, GenreSerializer,
-                          EmailTokenSerializer,
-                          MyTokenObtainPairSerializer,
-                          PostTitleSerializer)
+                          TitleCreateSerializer, CategorySerializer,
+                          GenreSerializer)
 from .permissions import (IsAuthorOrReadOnly, IsUserOrReadOnly,
                           IsModeratorOrReadOnly, IsAdminOrReadOnly,
-                          IsSuperUser)
+                          IsAdmin)
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly, IsAdminUser, IsAuthenticated
+from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from django.shortcuts import get_object_or_404
+>>>>>>> master
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -71,7 +76,6 @@ class APIsend_code(APIView):
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
 
-
 class APIsend_token(APIView):
     permission_classes = (AllowAny,)
 
@@ -79,7 +83,7 @@ class APIsend_token(APIView):
         token = RefreshToken.for_user(request.user)
         if User.objects.filter(username=request.data['username'], confirmation_code=request.data['confirmation_code']).exists():
             return Response({'token': str(token.access_token)},
-                            status=status.HTTP_201_CREATED)
+                            status=status.HTTP_200_OK)
         else:
             return Response('ошибка',
                             status=status.HTTP_400_BAD_REQUEST)
@@ -122,10 +126,7 @@ class APIPatch_me(APIView):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = [
-        IsAuthenticatedOrReadOnly
-        # IsAdminOrReadOnly, IsModeratorOrReadOnly
-    ]
+    permission_classes = [IsAuthenticatedOrReadOnly & IsAuthorOrReadOnly]
     pagination_class = PageNumberPagination
 
     def get_queryset(self):
@@ -175,9 +176,15 @@ class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет сериалайзера UserSerializer"""
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
+    permission_classes = [IsAdmin]
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('name', 'year', 'genre', 'category')
+    pagination_class = PageNumberPagination
+
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return TitleSerializer
+        return TitleCreateSerializer
 
     def get_queryset(self):
         queryset = Title.objects.all()
@@ -199,12 +206,12 @@ class CategoryViewSet(mixins.CreateModelMixin,
     """Вьюсет сериалайзера UserSerializer"""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
-    pagination_class = PageNumberPagination
+    permission_classes = [IsAdmin]
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+    pagination_class = PageNumberPagination
 
-
+    
 class GenreViewSet(mixins.CreateModelMixin,
                    mixins.ListModelMixin,
                    mixins.DestroyModelMixin,
@@ -212,7 +219,7 @@ class GenreViewSet(mixins.CreateModelMixin,
     """Вьюсет сериалайзера UserSerializer"""
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
-    pagination_class = PageNumberPagination
+    permission_classes = [IsAdmin]
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+    pagination_class = PageNumberPagination

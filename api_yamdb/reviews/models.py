@@ -12,17 +12,32 @@ CHOICES = (
     (MODERATOR, 'moderator'),
 )
 
-
 class User(AbstractUser):
     bio = models.TextField('Биография', blank=True,)
     role = models.CharField(max_length=20, choices=CHOICES, default=USER)
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=40, unique=True)
     confirmation_code = models.CharField(max_length=10, blank=True)
+    is_staff = models.BooleanField(default=False)
+    is_activ = models.BooleanField(default=True)
+
     REQUIRED_FIELD = ['username', 'email']
 
     def __str__(self):
         return self.username
+
+# class User(AbstractUser):
+#     bio = models.TextField('Биография', blank=True,)
+#     role = models.CharField(max_length=20, choices=CHOICES, default=USER)
+#     email = models.EmailField(unique=True)
+#     username = models.CharField(max_length=40, unique=True)
+#     confirmation_code = models.CharField(max_length=10, blank=True)
+#     is_staff = models.BooleanField(default=False)
+#     REQUIRED_FIELD = ['username', 'email']
+#     #USERNAME_FIELD = 'username'
+
+#     def __str__(self):
+#         return self.username
 
 
 class Category(models.Model):
@@ -50,13 +65,10 @@ class Title(models.Model):
         Genre, through='TitleGenre', blank=True
     )
     category = models.ForeignKey(
-        Category, on_delete=models.SET_NULL,
-        related_name='titles',
-        blank=True,
-        null=True
+        Category, on_delete=models.SET_NULL, related_name='titles', null=True
     )
-    description = models.TextField(blank=True, null=True)
-    year = models.IntegerField()
+    description = models.TextField(blank=True)
+    year = models.PositiveSmallIntegerField()
 
     def __str__(self):
         return self.name

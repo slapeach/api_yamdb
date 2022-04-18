@@ -4,12 +4,10 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
 )
 
-
 from .views import (ReviewViewSet, CommentViewSet,
                     UserViewSet, GenreViewSet,
                     CategoryViewSet, TitleViewSet,
                     APIsend_code, APIsend_token, APIPatch_me)
-
 
 app_name = 'api'
 
@@ -26,7 +24,6 @@ router.register(r'users', UserViewSet, basename='user')
 router.register(r'titles', TitleViewSet, basename='titles')
 router.register(r'genres', GenreViewSet, basename='genres')
 router.register(r'categories', CategoryViewSet, basename='categories')
-
 
 urlpatterns = [
     path('v1/auth/signup/', APIsend_code.as_view()),

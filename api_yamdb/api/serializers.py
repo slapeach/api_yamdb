@@ -5,7 +5,7 @@ from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from django.core.exceptions import ValidationError
 
-from reviews.models import User, Review, Comment, Title, Genre, Category
+from reviews.models import User, Review, Comment, Title, Genre, Category, TitleGenre
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -99,36 +99,9 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ('name', 'slug',)
 
 
-class TitleSerializer(serializers.ModelSerializer):
-    """Сериалайзер модели Title"""
-    rating = serializers.SerializerMethodField()
-    category = serializers.StringRelatedField(read_only=True)
-    genre = serializers.StringRelatedField(many=True, read_only=True)
-
-    class Meta:
-        model = Title
-        fields = (
-            'id', 'name',
-            'year', 'rating',
-            'description',
-            'genre', 'category'
-        )
-
-    def get_rating(self, obj):
-        title_id = obj.id
-        reviews = Review.objects.filter(title_id=title_id)
-        if reviews.count() > 0:
-            scores = reviews.aggregate(Avg('score'))
-            rating = math.ceil(scores.get('score__avg'))
-            return rating
-        return None
-
-
-class TitleSerializer(serializers.ModelSerializer):
-    """Сериалайзер модели Title"""
-    rating = serializers.SerializerMethodField()
-    genre = GenreSerializer(required=True, many=True)
-    category = CategorySerializer(required=True)
+class GenreSerializer(serializers.ModelSerializer):
+    """Сериалайзер модели Genre"""
+>>>>>>> master
 
     class Meta:
         model = Title
@@ -164,9 +137,49 @@ class PostTitleSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
+        model = Category
+        fields = ('name', 'slug',)
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    """Сериалайзер модели Title"""
+    rating = serializers.SerializerMethodField(read_only=True)
+    category = CategorySerializer()
+    genre = GenreSerializer(many=True)
+
+    class Meta:
         model = Title
         fields = (
-            'id', 'name', 'year',
-            'description', 'genre',
-            'category'
+            'id', 'name',
+            'year', 'rating',
+            'description',
+            'genre', 'category'
         )
+
+    def get_rating(self, obj):
+        title_id = obj.id
+        reviews = Review.objects.filter(title_id=title_id)
+        if reviews.count() > 0:
+            scores = reviews.aggregate(Avg('score'))
+            rating = math.ceil(scores.get('score__avg'))
+            return rating
+        return None
+    
+    def validate_year(self, value):
+        now = datetime.datetime.now()
+        if value > now.year:
+            raise ValidationError(message=f'Укажите корректный год выпуска')
+        return value
+
+
+class TitleCreateSerializer(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(
+        slug_field='slug', queryset=Category.objects.all()
+    )
+    genre = serializers.SlugRelatedField(
+        slug_field='slug', many=True, queryset=Genre.objects.all()
+    )
+
+    class Meta:
+        model = Title
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category')
