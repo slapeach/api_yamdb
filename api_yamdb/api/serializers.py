@@ -10,6 +10,30 @@ from reviews.models import User, Review, Comment, Title, Genre, Category, TitleG
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериалайзер модели User"""
+
+    class Meta:
+        model = User
+        fields = (
+            'username', 'email',
+            'first_name', 'last_name',
+            'bio', 'role'
+        )
+
+
+class EmailTokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('username', 'email')
+
+
+class MyTokenObtainPairSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ('username', 'confirmation_code')
+'''
+class UserSerializer(serializers.ModelSerializer):
+    """Сериалайзер модели User"""
     username = serializers.SlugField()
 
     class Meta:
@@ -52,14 +76,21 @@ class MyTokenObtainPairSerializer(serializers.ModelSerializer):
         if not User.objects.filter(confirmation_code=value).exists():
             raise ValidationError(message='Код подтверждения некорректен')
         return value
-
+'''
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Review"""
 
     class Meta:
         model = Review
-        fields = ('title_id','id', 'text', 'author', 'score', 'pub_date')
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
+
+
+class ReviewCreateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Review
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
 
     def validate_author(self, value):
         if Review.objects.filter(author=value).exists():
@@ -72,18 +103,24 @@ class ReviewSerializer(serializers.ModelSerializer):
             )
         return value
 
+    def validate_score(self, value):
+        if value < 1 or value > 10:
+            raise ValidationError(
+                message='Возможная оценка: от 1 до 10'
+            )
+
+
 
 class CommentSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Comment"""
 
     class Meta:
         model = Comment
-        fields = ('title_id', 'id', 'text', 'author', 'pub_date')
+        fields = ('id', 'text', 'author', 'pub_date')
 
 
 class GenreSerializer(serializers.ModelSerializer):
     """Сериалайзер модели Genre"""
-    # slug = serializers.SlugField(allow_blank=False)
 
     class Meta:
         model = Genre
@@ -92,49 +129,6 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
     """Сериалайзер модели Category"""
-    # slug = serializers.SlugField(allow_blank=False)
-
-    class Meta:
-        model = Category
-        fields = ('name', 'slug',)
-
-
-class GenreSerializer(serializers.ModelSerializer):
-    """Сериалайзер модели Genre"""
->>>>>>> master
-
-    class Meta:
-        model = Title
-        fields = (
-            'id', 'name',
-            'year', 'rating',
-            'description',
-            'genre', 'category'
-        )
-
-    def get_rating(self, obj):
-        title_id = obj.id
-        reviews = Review.objects.filter(title_id=title_id)
-        if reviews.count() > 0:
-            scores = reviews.aggregate(Avg('score'))
-            rating = math.ceil(scores.get('score__avg'))
-            return rating
-        return None
-
-    def validate_year(self, value):
-        now = datetime.datetime.now()
-        if value > now.year:
-            raise ValidationError(message='Укажите корректный год выпуска')
-        return value
-
-
-class PostTitleSerializer(serializers.ModelSerializer):
-    genre = SlugRelatedField(
-        slug_field='slug', queryset=Genre.objects.all(), many=True
-    )
-    category = SlugRelatedField(
-        slug_field='slug', queryset=Category.objects.all()
-    )
 
     class Meta:
         model = Category
@@ -164,7 +158,7 @@ class TitleSerializer(serializers.ModelSerializer):
             rating = math.ceil(scores.get('score__avg'))
             return rating
         return None
-    
+
     def validate_year(self, value):
         now = datetime.datetime.now()
         if value > now.year:
