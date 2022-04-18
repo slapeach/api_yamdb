@@ -35,8 +35,7 @@ from django.shortcuts import get_object_or_404
 
 class UserViewSet(viewsets.ModelViewSet):
     """Вьюсет сериалайзера UserSerializer"""
-    permission_classes = (IsAuthenticated, IsAdminOrReadOnly, )
-    #permission_classes = (AllowAny, )
+    permission_classes = (IsAuthenticated, IsAdminOrReadOnly,)
     pagination_class = PageNumberPagination
     queryset = User.objects.all()
     serializer_class = UserSerializer
