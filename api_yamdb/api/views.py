@@ -122,17 +122,22 @@ class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly & IsAuthorOrReadOnly]
     pagination_class = PageNumberPagination
 
+    # def get_queryset(self):
+    #     title_id = self.kwargs.get('title_id')
+    #     reviews = Review.objects.filter(title_id=title_id)
+    #     review_id = self.kwargs.get('review_id')
+    #     if not review_id:
+    #         return reviews
+    #     return reviews.filter(id=review_id)
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
-        reviews = Review.objects.filter(title_id=title_id)
-        review_id = self.kwargs.get('review_id')
-        if not review_id:
-            return reviews
-        return reviews.filter(id=review_id)
+        title = get_object_or_404(Title, pk=title_id)
+        return title.reviews
 
     def perform_create(self, serializer):
         serializer.save(
-            author=self.request.user, title_id=self.kwargs.get('title_id')
+            title_id=self.kwargs.get('title_id'),
+            author=self.request.user
         )
 
 
