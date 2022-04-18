@@ -12,6 +12,7 @@ from reviews.models import User, Review, Comment, Title, Genre, Category
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериалайзер модели User"""
+    username = serializers.SlugField()
 
     class Meta:
         model = User
@@ -49,6 +50,7 @@ class MyTokenObtainPairSerializer(serializers.ModelSerializer):
         if not User.objects.filter(confirmation_code=value).exists():
             raise ValidationError(message='Код подтверждения некорректен')
         return value
+
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Review"""
@@ -96,6 +98,7 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ('id', 'text', 'author', 'pub_date', 'review')
+
 
 
 class GenreSerializer(serializers.ModelSerializer):

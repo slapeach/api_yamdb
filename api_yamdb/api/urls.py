@@ -9,6 +9,7 @@ from .views import (ReviewSet, CommentViewSet,
                     CategoryViewSet, TitleViewSet,
                     APIsend_code, APIsend_token, APIPatch_me)
 
+
 app_name = 'api'
 
 

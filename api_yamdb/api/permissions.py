@@ -44,7 +44,7 @@ class IsSuperUser(permissions.BasePermission):
         return (
             request.user.is_superuser
         )
-    
+
     def has_object_permission(self, request, view, obj):
         return request.user.is_superuser
 
@@ -69,3 +69,4 @@ class IsAdminOrReadOnly(permissions.BasePermission):
             and request.user.is_authenticated
             and (request.user.role == 'admin')
         )
+

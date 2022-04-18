@@ -2,6 +2,7 @@ import string
 import secrets
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
+<<<<<<< HEAD
 import django_filters
 
 from django_filters.rest_framework import DjangoFilterBackend
@@ -15,7 +16,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticate
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-
 
 from reviews.models import User, Title, Review, Comment, Category, Genre
 from .serializers import (UserSerializer, ReviewSerializer,
