@@ -34,6 +34,7 @@ class EmailTokenSerializer(serializers.ModelSerializer):
                 message=f'Пользователь с username={value} уже существует'
             )
 
+
 class MyTokenObtainPairSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -58,7 +59,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = ('id', 'text', 'author', 'score', 'pub_date')
+        fields = ('title_id','id', 'text', 'author', 'score', 'pub_date')
 
     def validate_author(self, value):
         if Review.objects.filter(author=value).exists():
@@ -77,24 +78,51 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ('id', 'text', 'author', 'pub_date')
+        fields = ('title_id', 'id', 'text', 'author', 'pub_date')
 
 
 class GenreSerializer(serializers.ModelSerializer):
     """Сериалайзер модели Genre"""
-    # slug = serializers.SlugField()
+    # slug = serializers.SlugField(allow_blank=False)
 
     class Meta:
         model = Genre
         fields = ('name', 'slug')
 
+
 class CategorySerializer(serializers.ModelSerializer):
     """Сериалайзер модели Category"""
-    # slug = serializers.SlugField()
+    # slug = serializers.SlugField(allow_blank=False)
 
     class Meta:
         model = Category
         fields = ('name', 'slug',)
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    """Сериалайзер модели Title"""
+    rating = serializers.SerializerMethodField()
+    category = serializers.StringRelatedField(read_only=True)
+    genre = serializers.StringRelatedField(many=True, read_only=True)
+
+    class Meta:
+        model = Title
+        fields = (
+            'id', 'name',
+            'year', 'rating',
+            'description',
+            'genre', 'category'
+        )
+
+    def get_rating(self, obj):
+        title_id = obj.id
+        reviews = Review.objects.filter(title_id=title_id)
+        if reviews.count() > 0:
+            scores = reviews.aggregate(Avg('score'))
+            rating = math.ceil(scores.get('score__avg'))
+            return rating
+        return None
+
 
 class TitleSerializer(serializers.ModelSerializer):
     """Сериалайзер модели Title"""
@@ -118,7 +146,7 @@ class TitleSerializer(serializers.ModelSerializer):
             scores = reviews.aggregate(Avg('score'))
             rating = math.ceil(scores.get('score__avg'))
             return rating
-        return 0
+        return None
 
     def validate_year(self, value):
         now = datetime.datetime.now()
@@ -129,7 +157,7 @@ class TitleSerializer(serializers.ModelSerializer):
 
 class PostTitleSerializer(serializers.ModelSerializer):
     genre = SlugRelatedField(
-        slug_field='slug', queryset=Genre.objects.all()
+        slug_field='slug', queryset=Genre.objects.all(), many=True
     )
     category = SlugRelatedField(
         slug_field='slug', queryset=Category.objects.all()
@@ -138,7 +166,7 @@ class PostTitleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = (
-            'name', 'year',
+            'id', 'name', 'year',
             'description', 'genre',
             'category'
         )

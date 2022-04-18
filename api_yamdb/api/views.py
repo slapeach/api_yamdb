@@ -1,5 +1,6 @@
 import string
 import secrets
+from django.shortcuts import get_object_or_404
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
@@ -135,10 +136,16 @@ class ReviewViewSet(viewsets.ModelViewSet):
             return reviews
         return reviews.filter(id=review_id)
 
-    def perform_create(self, serializer):
-        serializer.save(
-            author=self.request.user, title_id=self.kwargs.get('title_id')
-        )
+    def create(self, request):
+       # serializer.save(
+       #     author=self.request.user, title_id=self.kwargs.get('title_id')
+       # )
+        serializer = ReviewSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -156,11 +163,12 @@ class CommentViewSet(viewsets.ModelViewSet):
             return comments
         return comments.filter(id=comment_id)
 
-    def perform_create(self, serializer):
-        serializer.save(
-            author=self.request.user, title_id=self.kwargs.get('title_id'),
-            review_id=self.kwargs.get('review_id')
-        )
+    def create(self, request):
+        serializer = CommentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -174,9 +182,9 @@ class TitleViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = Title.objects.all()
         serializer = TitleSerializer(queryset, many=True)
-        return Response(serializer)
-    
-    def post(self, request):
+        return Response(serializer.data)
+
+    def create(self, request):
         serializer = PostTitleSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -192,6 +200,7 @@ class CategoryViewSet(mixins.CreateModelMixin,
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
+    pagination_class = PageNumberPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
@@ -204,5 +213,6 @@ class GenreViewSet(mixins.CreateModelMixin,
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
+    pagination_class = PageNumberPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
