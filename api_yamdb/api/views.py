@@ -1,36 +1,35 @@
 import string
 import secrets
+import django_filters
 
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets
-
-from rest_framework.response import Response
 from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 
-
-from reviews.models import User, Title, Review, Comment
-from .serializers import (UserSerializer, EmailTokenSerializer,
-                          ReviewSerializer, CommentSerializer,
-                          MyTokenObtainPairSerializer)
-from rest_framework import viewsets, mixins
-from rest_framework import viewsets, mixins, filters
+from rest_framework import viewsets, filters, status
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.response import Response
 
 
 from reviews.models import User, Title, Review, Comment, Category, Genre
 from .serializers import (UserSerializer, ReviewSerializer,
                           CommentSerializer, TitleSerializer,
                           TitleCreateSerializer, CategorySerializer,
-                          GenreSerializer)
+                          GenreSerializer, EmailTokenSerializer,
+                          MyTokenObtainPairSerializer)
 from .permissions import (IsAuthorOrReadOnly, IsUserOrReadOnly,
                           IsModeratorOrReadOnly, IsAdminOrReadOnly,
                           IsAdmin)
-from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly, IsAdminUser, IsAuthenticated
+from rest_framework.permissions import (AllowAny, IsAuthenticatedOrReadOnly,
+                                        IsAuthenticated)
+from .mixins import ListCreateDestroyMixin
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from django.shortcuts import get_object_or_404
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -125,17 +124,22 @@ class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly & IsAuthorOrReadOnly]
     pagination_class = PageNumberPagination
 
+    # def get_queryset(self):
+    #     title_id = self.kwargs.get('title_id')
+    #     reviews = Review.objects.filter(title_id=title_id)
+    #     review_id = self.kwargs.get('review_id')
+    #     if not review_id:
+    #         return reviews
+    #     return reviews.filter(id=review_id)
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
-        reviews = Review.objects.filter(title_id=title_id)
-        review_id = self.kwargs.get('review_id')
-        if not review_id:
-            return reviews
-        return reviews.filter(id=review_id)
+        title = get_object_or_404(Title, pk=title_id)
+        return title.reviews
 
     def perform_create(self, serializer):
         serializer.save(
-            author=self.request.user, title_id=self.kwargs.get('title_id')
+            title_id=self.kwargs.get('title_id'),
+            author=self.request.user
         )
 
 
@@ -161,13 +165,26 @@ class CommentViewSet(viewsets.ModelViewSet):
         )
 
 
+class TitleFilterSet(django_filters.FilterSet):
+    name = django_filters.CharFilter(field_name='name', lookup_expr='icontains')
+    genre = django_filters.CharFilter(field_name='genre__slug')
+    category = django_filters.CharFilter(field_name='category__slug')
+
+    class Meta:
+        model = Title
+        fields = [
+            'name', 'year',
+            'genre', 'category'
+        ]
+
+
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет сериалайзера UserSerializer"""
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    permission_classes = [IsAdmin]
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('name', 'year', 'genre', 'category')
+    filterset_class = TitleFilterSet
     pagination_class = PageNumberPagination
 
     def get_serializer_class(self):
@@ -176,19 +193,14 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleCreateSerializer
 
 
-class CategoryViewSet(mixins.CreateModelMixin,
-                      mixins.ListModelMixin,
-                      mixins.DestroyModelMixin,
-                      viewsets.GenericViewSet):
+class CategoryViewSet(ListCreateDestroyMixin):
     """Вьюсет сериалайзера UserSerializer"""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAdmin]
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-    pagination_class = PageNumberPagination
-
     
+
 class GenreViewSet(mixins.CreateModelMixin,
                    mixins.ListModelMixin,
                    mixins.DestroyModelMixin,
@@ -196,7 +208,5 @@ class GenreViewSet(mixins.CreateModelMixin,
     """Вьюсет сериалайзера UserSerializer"""
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = [IsAdmin]
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-    pagination_class = PageNumberPagination
