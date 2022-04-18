@@ -56,7 +56,7 @@ class Title(models.Model):
         Category, on_delete=models.SET_NULL, related_name='titles', null=True
     )
     description = models.TextField(blank=True)
-    year = models.PositiveSmallIntegerField()
+    year = models.PositiveSmallIntegerField(null=True)
 
     def __str__(self):
         return self.name
