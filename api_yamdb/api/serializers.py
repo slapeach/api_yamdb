@@ -6,7 +6,7 @@ from rest_framework.relations import SlugRelatedField
 from django.core.exceptions import ValidationError
 from rest_framework.validators import UniqueTogetherValidator
 
-from reviews.models import User, Review, Comment, Title, Genre, Category, TitleGenre
+from reviews.models import User, Review, Comment, Title, Genre, Category
 
 
 class UserSerializer(serializers.ModelSerializer):

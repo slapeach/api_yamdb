@@ -1,5 +1,6 @@
 import string
 import secrets
+<<<<<<< HEAD
 from django.shortcuts import get_object_or_404
 
 from django_filters.rest_framework import DjangoFilterBackend
@@ -13,6 +14,21 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticate
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+=======
+import django_filters
+
+from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
+
+from rest_framework import viewsets, filters, status
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.response import Response
+
+>>>>>>> master
 
 from reviews.models import User, Title, Review, Comment, Category, Genre
 from .serializers import (UserSerializer, ReviewSerializer,
@@ -23,12 +39,13 @@ from .serializers import (UserSerializer, ReviewSerializer,
 from .permissions import (IsAuthorOrReadOnly, IsSuperUser, IsUserOrReadOnly,
                           IsModeratorOrReadOnly, IsAdminOrReadOnly,
                           IsAdmin)
-from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly, IsAdminUser, IsAuthenticated
+from rest_framework.permissions import (AllowAny, IsAuthenticatedOrReadOnly,
+                                        IsAuthenticated)
+from .mixins import ListCreateDestroyMixin
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from django.shortcuts import get_object_or_404
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -128,7 +145,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(
-            author=self.request.user, title_id=self.kwargs.get('title_id')
+            title_id=self.kwargs.get('title_id'),
+            author=self.request.user
         )
 
 
@@ -194,13 +212,26 @@ class CommentViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 '''
 
+class TitleFilterSet(django_filters.FilterSet):
+    name = django_filters.CharFilter(field_name='name', lookup_expr='icontains')
+    genre = django_filters.CharFilter(field_name='genre__slug')
+    category = django_filters.CharFilter(field_name='category__slug')
+
+    class Meta:
+        model = Title
+        fields = [
+            'name', 'year',
+            'genre', 'category'
+        ]
+
+
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет сериалайзера UserSerializer"""
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    permission_classes = [IsAdmin]
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('name', 'year', 'genre', 'category')
+    filterset_class = TitleFilterSet
     pagination_class = PageNumberPagination
 
     def get_serializer_class(self):
@@ -209,18 +240,12 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleCreateSerializer
 
 
-class CategoryViewSet(mixins.CreateModelMixin,
-                      mixins.ListModelMixin,
-                      mixins.DestroyModelMixin,
-                      viewsets.GenericViewSet):
+class CategoryViewSet(ListCreateDestroyMixin):
     """Вьюсет сериалайзера UserSerializer"""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAdmin]
-    filter_backends = (DjangoFilterBackend, filters.SearchFilter,)
-    filterset_fields = ('slug',)
-    search_fields = ('name',)
-    pagination_class = PageNumberPagination
+    permission_classes = [IsAdminOrReadOnly]
+    filter_backends = (filters.SearchFilter,)
 
 
 class GenreViewSet(mixins.CreateModelMixin,
@@ -230,7 +255,5 @@ class GenreViewSet(mixins.CreateModelMixin,
     """Вьюсет сериалайзера UserSerializer"""
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = [IsAdmin]
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-    pagination_class = PageNumberPagination
