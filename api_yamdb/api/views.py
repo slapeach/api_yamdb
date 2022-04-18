@@ -65,7 +65,7 @@ class APIsend_code(APIView):
             return Response('Данное имя пользователя запрещено',
                             status=status.HTTP_400_BAD_REQUEST)
         elif serializer.is_valid():
-            serializer.save(username=request.data['username'],
+            serializer.save(
                             confirmation_code=confirmation_code)
             send_mail(
                 'Регистрация YAMDB',
@@ -88,14 +88,13 @@ class APIsend_token(APIView):
 
     def post(self, request):
         serializer = MyTokenObtainPairSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        serializer.is_valid(raise_exception=False)
         try:
-            user = User.objects.get(username=request.data['username'])
+            user = User.objects.get(username=request.data.get('username'))
         except User.DoesNotExist:
             return Response('Пользователь с указанным именем отсутствует',
                             status=status.HTTP_404_NOT_FOUND)
-        if serializer.validated_data(
-                ["confirmation_code"]) == user.confirmation_code:
+        if serializer.data.get('confirmation_code') == user.confirmation_code:
             token = RefreshToken.for_user(request.user).access_token
             return Response({'token': str(token)}, status=status.HTTP_200_OK)
         return Response('Код подтверждения некорректен',
@@ -104,6 +103,7 @@ class APIsend_token(APIView):
 
 class APIPatch_me(APIView):
     permission_classes = (IsAuthenticated, IsUserOrReadOnly, IsAdminOrReadOnly)
+    #permission_classes = (AllowAny, )
 
     def get(self, request):
         user = get_object_or_404(User, username=request.user.username)
