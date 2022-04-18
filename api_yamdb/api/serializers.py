@@ -27,6 +27,8 @@ class EmailTokenSerializer(serializers.ModelSerializer):
 
 
 class MyTokenObtainPairSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(max_length=40)
+    confirmation_code = serializers.CharField(max_length=10)
 
     class Meta:
         model = User
