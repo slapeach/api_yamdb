@@ -12,6 +12,7 @@ CHOICES = (
     (MODERATOR, "moderator"),
 )
 
+
 class User(AbstractUser):
     bio = models.TextField('Биография', blank=True,)
     role = models.CharField(max_length=20, choices=CHOICES, default=USER)
