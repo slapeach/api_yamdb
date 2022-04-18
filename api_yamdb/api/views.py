@@ -2,7 +2,6 @@ import string
 import secrets
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
-<<<<<<< HEAD
 import django_filters
 
 from django_filters.rest_framework import DjangoFilterBackend
