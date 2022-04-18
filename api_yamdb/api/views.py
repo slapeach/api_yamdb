@@ -18,9 +18,9 @@ from reviews.models import User, Title, Review, Comment, Category, Genre
 from .serializers import (UserSerializer, ReviewSerializer,
                           CommentSerializer, TitleSerializer,
                           TitleCreateSerializer, CategorySerializer,
-                          GenreSerializer, EmailTokenSerializer, MyTokenObtainPairSerializer,
-                          ReviewCreateSerializer)
-from .permissions import (IsAuthorOrReadOnly, IsUserOrReadOnly,
+                          GenreSerializer, EmailTokenSerializer, MyTokenObtainPairSerializer
+                          )
+from .permissions import (IsAuthorOrReadOnly, IsSuperUser, IsUserOrReadOnly,
                           IsModeratorOrReadOnly, IsAdminOrReadOnly,
                           IsAdmin)
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly, IsAdminUser, IsAuthenticated
@@ -121,27 +121,30 @@ class APIPatch_me(APIView):
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = [IsAdmin]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     pagination_class = PageNumberPagination
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ('title_id', 'id',)
+    filterset_fields = ('title_id', 'id')
 
-    def get_serializer_class(self):
-        if self.action in ['list', 'retrieve']:
-            return ReviewViewSet
-        return ReviewCreateSerializer
+    def perform_create(self, serializer):
+        serializer.save(
+            author=self.request.user, title_id=self.kwargs.get('title_id')
+        )
+
 
 
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [
-        IsAdmin
-    ]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     pagination_class = PageNumberPagination
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ('review_id', 'id',)
 
+    def perform_create(self, serializer):
+        serializer.save(
+            author=self.request.user, review_id=self.kwargs.get('review_id')
+        )
 '''
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
@@ -194,7 +197,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет сериалайзера UserSerializer"""
     queryset = Title.objects.all()
-    #serializer_class = TitleSerializer
+    serializer_class = TitleSerializer
     permission_classes = [IsAdmin]
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('name', 'year', 'genre', 'category')
@@ -214,11 +217,12 @@ class CategoryViewSet(mixins.CreateModelMixin,
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdmin]
-    filter_backends = (filters.SearchFilter,)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter,)
+    filterset_fields = ('slug',)
     search_fields = ('name',)
     pagination_class = PageNumberPagination
 
-    
+
 class GenreViewSet(mixins.CreateModelMixin,
                    mixins.ListModelMixin,
                    mixins.DestroyModelMixin,

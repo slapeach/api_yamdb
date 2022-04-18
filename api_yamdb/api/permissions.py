@@ -45,7 +45,7 @@ class IsSuperUser(permissions.BasePermission):
 
 class IsAdminOrReadOnly(permissions.BasePermission):
     """Пермишен для доступа  к изменению контента
-       только модераторам или авторам"""
+       только администратору"""
 
     def has_permission(self, request, view):
         return request.user.is_staff or (request.user.role == 'admin')

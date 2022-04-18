@@ -26,19 +26,6 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
-# class User(AbstractUser):
-#     bio = models.TextField('Биография', blank=True,)
-#     role = models.CharField(max_length=20, choices=CHOICES, default=USER)
-#     email = models.EmailField(unique=True)
-#     username = models.CharField(max_length=40, unique=True)
-#     confirmation_code = models.CharField(max_length=10, blank=True)
-#     is_staff = models.BooleanField(default=False)
-#     REQUIRED_FIELD = ['username', 'email']
-#     #USERNAME_FIELD = 'username'
-
-#     def __str__(self):
-#         return self.username
-
 
 class Category(models.Model):
     """Модель Category"""
@@ -86,13 +73,14 @@ class Review(models.Model):
     text = models.TextField()
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='reviews')
-    score = models.PositiveSmallIntegerField(
-        default=1,
-        validators=[
-            MinValueValidator(1),
-            MaxValueValidator(10)
-        ]
-    )
+    score = models.IntegerField(null=True)
+    #score = models.PositiveSmallIntegerField(
+    #    default=1,
+    #    validators=[
+    #        MinValueValidator(1),
+    #        MaxValueValidator(10)
+    #    ]
+    #)
     pub_date = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True
     )
