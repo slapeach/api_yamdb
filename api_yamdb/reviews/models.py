@@ -20,7 +20,7 @@ class User(AbstractUser):
     username = models.CharField(max_length=40, unique=True)
     confirmation_code = models.CharField(max_length=10, blank=True)
     is_staff = models.BooleanField(default=False)
-    is_activ = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
 
     REQUIRED_FIELD = ['username', 'email']
 

@@ -23,18 +23,30 @@ from .serializers import (UserSerializer, ReviewSerializer,
 from .permissions import (IsAuthorOrReadOnly, IsUserOrReadOnly,
                           IsModeratorOrReadOnly, IsAdminOrReadOnly,
                           IsAdmin)
+<<<<<<< HEAD
 from .mixins import ListCreateDestroyMixin
+=======
+from rest_framework.permissions import (AllowAny, IsAuthenticatedOrReadOnly,
+                                        IsAuthenticated)
+from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
+>>>>>>> 5991984b6b6d8be6f56e2a53db986d6b990bf01c
 
 
 
 class UserViewSet(viewsets.ModelViewSet):
     """Вьюсет сериалайзера UserSerializer"""
+<<<<<<< HEAD
     permission_classes = (IsAuthenticated, IsAdmin,)
+=======
+    permission_classes = (IsAuthenticated, IsAdminOrReadOnly, )
+>>>>>>> 5991984b6b6d8be6f56e2a53db986d6b990bf01c
     pagination_class = PageNumberPagination
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'username'
-    filter_backends =[DjangoFilterBackend, filters.SearchFilter]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ('username',)
     search_fields = ['username']
 
@@ -50,10 +62,16 @@ class APIsend_code(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        confirmation_code = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(9))
+        confirmation_code = ''.join(
+            secrets.choice(
+                string.ascii_uppercase + string.digits) for _ in range(9))
         serializer = EmailTokenSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(username=request.data['username'], confirmation_code=confirmation_code)
+        if request.data.get('username') == 'me':
+            return Response('Данное имя пользователя запрещено',
+                            status=status.HTTP_400_BAD_REQUEST)
+        elif serializer.is_valid():
+            serializer.save(
+                            confirmation_code=confirmation_code)
             send_mail(
                 'Регистрация YAMDB',
                 f'Для подтверждения регистрации'
@@ -69,37 +87,28 @@ class APIsend_code(APIView):
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
 
+
 class APIsend_token(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        token = RefreshToken.for_user(request.user)
-        if User.objects.filter(username=request.data['username'], confirmation_code=request.data['confirmation_code']).exists():
-            return Response({'token': str(token.access_token)},
-                            status=status.HTTP_200_OK)
-        else:
-            return Response('ошибка',
-                            status=status.HTTP_400_BAD_REQUEST)
-
-
-class APIsend_token111(APIView):
-    permission_classes = (AllowAny,)
-
-    def post(self, request):
         serializer = MyTokenObtainPairSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        serializer.is_valid(raise_exception=False)
         try:
-            user = User.objects.get(username=request.data['username'])
+            user = User.objects.get(username=request.data.get('username'))
         except User.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        if serializer.validated_data["confirmation_code"] == user.confirmation_code:
+            return Response('Пользователь с указанным именем отсутствует',
+                            status=status.HTTP_404_NOT_FOUND)
+        if serializer.data.get('confirmation_code') == user.confirmation_code:
             token = RefreshToken.for_user(request.user).access_token
             return Response({'token': str(token)}, status=status.HTTP_200_OK)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response('Код подтверждения некорректен',
+                        status=status.HTTP_404_NOT_FOUND)
 
 
 class APIPatch_me(APIView):
-    permission_classes = (IsUserOrReadOnly,)
+    permission_classes = (IsAuthenticated, IsUserOrReadOnly, IsAdminOrReadOnly)
+    #permission_classes = (AllowAny, )
 
     def get(self, request):
         user = get_object_or_404(User, username=request.user.username)
@@ -199,8 +208,16 @@ class CategoryViewSet(ListCreateDestroyMixin):
     filter_backends = (filters.SearchFilter,)
     
 
+<<<<<<< HEAD
     
 class GenreViewSet(ListCreateDestroyMixin):
+=======
+
+class GenreViewSet(mixins.CreateModelMixin,
+                   mixins.ListModelMixin,
+                   mixins.DestroyModelMixin,
+                   viewsets.GenericViewSet):
+>>>>>>> 5991984b6b6d8be6f56e2a53db986d6b990bf01c
     """Вьюсет сериалайзера UserSerializer"""
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
