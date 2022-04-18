@@ -36,12 +36,11 @@ from django.shortcuts import get_object_or_404
 class UserViewSet(viewsets.ModelViewSet):
     """Вьюсет сериалайзера UserSerializer"""
     permission_classes = (IsAuthenticated, IsAdminOrReadOnly, )
-    #permission_classes = (AllowAny, )
     pagination_class = PageNumberPagination
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'username'
-    filter_backends =[DjangoFilterBackend, filters.SearchFilter]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ('username',)
     search_fields = ['username']
 
@@ -57,10 +56,16 @@ class APIsend_code(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        confirmation_code = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(9))
+        confirmation_code = ''.join(
+            secrets.choice(
+                string.ascii_uppercase + string.digits) for _ in range(9))
         serializer = EmailTokenSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(username=request.data['username'], confirmation_code=confirmation_code)
+        if request.data.get('username') == 'me':
+            return Response('Данное имя пользователя запрещено',
+                            status=status.HTTP_400_BAD_REQUEST)
+        elif serializer.is_valid():
+            serializer.save(
+                            confirmation_code=confirmation_code)
             send_mail(
                 'Регистрация YAMDB',
                 f'Для подтверждения регистрации'
@@ -76,37 +81,28 @@ class APIsend_code(APIView):
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
 
+
 class APIsend_token(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        token = RefreshToken.for_user(request.user)
-        if User.objects.filter(username=request.data['username'], confirmation_code=request.data['confirmation_code']).exists():
-            return Response({'token': str(token.access_token)},
-                            status=status.HTTP_200_OK)
-        else:
-            return Response('ошибка',
-                            status=status.HTTP_400_BAD_REQUEST)
-
-
-class APIsend_token111(APIView):
-    permission_classes = (AllowAny,)
-
-    def post(self, request):
         serializer = MyTokenObtainPairSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        serializer.is_valid(raise_exception=False)
         try:
-            user = User.objects.get(username=request.data['username'])
+            user = User.objects.get(username=request.data.get('username'))
         except User.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        if serializer.validated_data["confirmation_code"] == user.confirmation_code:
+            return Response('Пользователь с указанным именем отсутствует',
+                            status=status.HTTP_404_NOT_FOUND)
+        if serializer.data.get('confirmation_code') == user.confirmation_code:
             token = RefreshToken.for_user(request.user).access_token
             return Response({'token': str(token)}, status=status.HTTP_200_OK)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response('Код подтверждения некорректен',
+                        status=status.HTTP_404_NOT_FOUND)
 
 
 class APIPatch_me(APIView):
-    permission_classes = (IsUserOrReadOnly,)
+    permission_classes = (IsAuthenticated, IsUserOrReadOnly, IsAdminOrReadOnly)
+    #permission_classes = (AllowAny, )
 
     def get(self, request):
         user = get_object_or_404(User, username=request.user.username)
