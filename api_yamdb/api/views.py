@@ -5,6 +5,7 @@ import django_filters
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from django_filters import FilterSet
 
 from rest_framework import viewsets, filters, status
 from rest_framework.pagination import PageNumberPagination
@@ -154,7 +155,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         )
 
 
-class TitleFilterSet(django_filters.FilterSet):
+class TitleFilterSet(FilterSet):
     name = django_filters.CharFilter(field_name='name', lookup_expr='icontains')
     genre = django_filters.CharFilter(field_name='genre__slug')
     category = django_filters.CharFilter(field_name='category__slug')
