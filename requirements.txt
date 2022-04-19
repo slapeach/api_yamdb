@@ -1,10 +1,16 @@
 asgiref==3.5.0
+<<<<<<< HEAD
 atomicwrites==1.4.0
+=======
+>>>>>>> 48a6348baa6fb62a485f54a869087f2b8917ef59
 attrs==21.4.0
 certifi==2021.10.8
 cffi==1.15.0
 charset-normalizer==2.0.12
+<<<<<<< HEAD
 colorama==0.4.4
+=======
+>>>>>>> 48a6348baa6fb62a485f54a869087f2b8917ef59
 coreapi==2.3.3
 coreschema==0.0.4
 cryptography==36.0.2
@@ -12,23 +18,38 @@ defusedxml==0.7.1
 Django==2.2.16
 django-filter==21.1
 django-templated-mail==1.1.1
+<<<<<<< HEAD
 djangorestframework==3.12.4
 djangorestframework-simplejwt==4.8.0
 djoser==2.1.0
 flake8==4.0.1
+=======
+djangorestframework==3.13.1
+djangorestframework-simplejwt==4.7.2
+djoser==2.1.0
+>>>>>>> 48a6348baa6fb62a485f54a869087f2b8917ef59
 idna==3.3
 iniconfig==1.1.1
 itypes==1.2.0
 Jinja2==3.1.1
 MarkupSafe==2.1.1
+<<<<<<< HEAD
 mccabe==0.6.1
+=======
+mypy==0.942
+mypy-extensions==0.4.3
+>>>>>>> 48a6348baa6fb62a485f54a869087f2b8917ef59
 oauthlib==3.2.0
 packaging==21.3
 pluggy==0.13.1
 py==1.11.0
+<<<<<<< HEAD
 pycodestyle==2.8.0
 pycparser==2.21
 pyflakes==2.4.0
+=======
+pycparser==2.21
+>>>>>>> 48a6348baa6fb62a485f54a869087f2b8917ef59
 PyJWT==2.1.0
 pyparsing==3.0.8
 pytest==6.2.4
@@ -43,5 +64,10 @@ social-auth-app-django==4.0.0
 social-auth-core==4.2.0
 sqlparse==0.4.2
 toml==0.10.2
+<<<<<<< HEAD
+=======
+tomli==2.0.1
+typing-extensions==4.1.1
+>>>>>>> 48a6348baa6fb62a485f54a869087f2b8917ef59
 uritemplate==4.1.1
 urllib3==1.26.9

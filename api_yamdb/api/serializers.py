@@ -23,7 +23,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 class UserMePatch(serializers.ModelSerializer):
     """Сериалайзер модели User"""
-    username = serializers.SlugField()
     role = serializers.CharField(read_only=True)
 
     class Meta:
@@ -36,6 +35,7 @@ class UserMePatch(serializers.ModelSerializer):
 
 
 class EmailTokenSerializer(serializers.ModelSerializer):
+    """Сериализатор модели User для получения кода"""
     class Meta:
         model = User
         fields = ('username', 'email')
@@ -45,7 +45,8 @@ class EmailTokenSerializer(serializers.ModelSerializer):
             raise ValidationError(message='Данное имя пользователя запрещено')
 
 
-class MyTokenObtainPairSerializer(serializers.ModelSerializer):
+class MyTokenObtainPairSerializer(serializers.Serializer):
+    """Сериализатор модели User для получения токена"""
     username = serializers.CharField(max_length=40, required=True)
     confirmation_code = serializers.CharField(max_length=10, required=True)
 
@@ -55,7 +56,7 @@ class MyTokenObtainPairSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Review"""
+    """Сериализатор модели Review"""
     author = SlugRelatedField(read_only=True, slug_field='username')
     title = SlugRelatedField(
         write_only=True, queryset=Title.objects.all(),
@@ -87,7 +88,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Comment"""
+    """Сериализатор модели Comment"""
     author = SlugRelatedField(read_only=True, slug_field='username')
     review = SlugRelatedField(
         write_only=True, queryset=Review.objects.all(),
@@ -101,7 +102,6 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class GenreSerializer(serializers.ModelSerializer):
     """Сериалайзер модели Genre"""
-
     class Meta:
         model = Genre
         fields = ('name', 'slug')
@@ -109,7 +109,6 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
     """Сериалайзер модели Category"""
-
     class Meta:
         model = Category
         fields = ('name', 'slug',)
@@ -147,6 +146,7 @@ class TitleSerializer(serializers.ModelSerializer):
 
 
 class TitleCreateSerializer(serializers.ModelSerializer):
+    """Сериалайзер для модели TitleGenre"""
     category = serializers.SlugRelatedField(
         slug_field='slug', queryset=Category.objects.all()
     )

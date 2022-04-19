@@ -72,6 +72,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class APIsend_code(APIView):
+    """Вьюкласс сериалайзера EmailTokenSerializer"""
     permission_classes = (AllowAny,)
 
     def post(self, request):
@@ -101,6 +102,7 @@ class APIsend_code(APIView):
 
 
 class APIsend_token(APIView):
+    """Вьюкласс сериалайзера MyTokenObtainPairSerializer"""
     permission_classes = (AllowAny,)
 
     def post(self, request):
@@ -168,6 +170,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class TitleFilterSet(django_filters.FilterSet):
+    """Фильтр для Title по Genre и Category"""
     name = django_filters.CharFilter(
         field_name='name', lookup_expr='icontains'
     )
