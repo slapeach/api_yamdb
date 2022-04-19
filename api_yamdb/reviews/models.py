@@ -56,7 +56,7 @@ class Title(models.Model):
         Category, on_delete=models.SET_NULL, related_name='titles', null=True
     )
     description = models.TextField(blank=True)
-    year = models.PositiveSmallIntegerField(null=True)
+    year = models.PositiveSmallIntegerField()
 
     def __str__(self):
         return self.name
@@ -74,14 +74,13 @@ class Review(models.Model):
     text = models.TextField()
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='reviews')
-    score = models.IntegerField(null=True)
-    #score = models.PositiveSmallIntegerField(
-    #    default=1,
-    #    validators=[
-    #        MinValueValidator(1),
-    #        MaxValueValidator(10)
-    #    ]
-    #)
+    score = models.PositiveSmallIntegerField(
+        default=1,
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(10)
+        ]
+    )
     pub_date = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True
     )

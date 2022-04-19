@@ -24,7 +24,7 @@ class IsModeratorOrReadOnly(permissions.BasePermission):
             request.method in permissions.SAFE_METHODS
             or request.user.role == 'moderator'
         )
-    
+
     def has_object_permission(self, request, view, obj):
         return request.user.role == 'moderator'
 
@@ -70,3 +70,28 @@ class IsAdminOrReadOnly(permissions.BasePermission):
             and (request.user.role == 'admin')
         )
 
+
+class IsAuthorOrStaffOrReadOnly(permissions.BasePermission):
+
+    def has_object_permission(self, request, view, obj):
+        return (
+            request.method in permissions.SAFE_METHODS
+            or request.user
+            and request.user.is_authenticated
+            and (request.user == obj.author
+                 or request.user.is_staff
+                 or (request.user.role == 'admin')
+                 or (request.user.role == 'moderator'))
+        )
+
+
+class IsAutenticatedOrAdminOrReadOnly(permissions.BasePermission):
+
+    def has_object_permission(self, request, view, obj):
+        return (
+            request.method in permissions.SAFE_METHODS
+            or request.user
+            and request.user.is_authenticated
+            and (request.user.username == obj.username
+                 or (request.user.role == 'admin'))
+        )

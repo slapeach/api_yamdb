@@ -5,7 +5,6 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from django.core.exceptions import ValidationError
-from rest_framework.validators import UniqueTogetherValidator
 
 from reviews.models import User, Review, Comment, Title, Genre, Category
 
@@ -32,7 +31,9 @@ class EmailTokenSerializer(serializers.ModelSerializer):
         if value == 'me':
             raise ValidationError(message='Данное имя пользователя запрещено')
         if User.objects.filter(username=value).exists():
-            raise ValidationError(message=f'Пользователь с username={value} уже существует')
+            raise ValidationError(
+                message=f'Пользователь с username={value} уже существует'
+            )
 
 
 class MyTokenObtainPairSerializer(serializers.ModelSerializer):
@@ -41,15 +42,32 @@ class MyTokenObtainPairSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'confirmation_code')
 
+    '''
     def validate_username(self, value):
         if not User.objects.filter(username=value).exists():
-            raise ValidationError(message=f'Пользователь с username={value} отсутствует')
+            raise ValidationError(
+                message=f'Пользователь с username={value} отсутствует'
+            )
         return value
 
     def validate_confirmation_code(self, value):
         if not User.objects.filter(confirmation_code=value).exists():
             raise ValidationError(message='Код подтверждения некорректен')
         return value
+    '''
+
+    def validate(self, attrs):
+        user = get_object_or_404(
+            User, username=self.context.get('username')
+        )
+        confirmation_code = self.context.get('confirmation_code')
+        if not User.objects.filter(confirmation_code=confirmation_code,
+                                   username=user).exists():
+            if self.context['request'].method in ['POST']:
+                raise serializers.ValidationError(
+                    'Код подтверждения или имя пользователя неверны'
+                )
+        return super().validate(attrs)
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -59,7 +77,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         write_only=True, queryset=Title.objects.all(),
         slug_field='title', required=False
     )
-    text = serializers.CharField(allow_blank=False)
 
     class Meta:
         model = Review
@@ -73,12 +90,18 @@ class ReviewSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
-        title = get_object_or_404(Title, id=self.context['view'].kwargs.get('title_id'))
+        title = get_object_or_404(
+            Title, id=self.context['view'].kwargs.get('title_id')
+        )
         user = self.context.get('request').user
         if Review.objects.filter(title=title, author=user).exists():
             if self.context['request'].method in ['POST']:
-                raise serializers.ValidationError('Только один отзыв от пользователя')
+                raise serializers.ValidationError(
+                    'Возможно оставить только 1 отзыв на произведение'
+                )
         return super().validate(attrs)
+
+
 '''
     def validate_score(self, value):
         if value < 1 or value > 10:
@@ -86,6 +109,7 @@ class ReviewSerializer(serializers.ModelSerializer):
                 message='Возможная оценка: от 1 до 10'
             )
 '''
+
 
 class CommentSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Comment"""
@@ -98,7 +122,6 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ('id', 'text', 'author', 'pub_date', 'review')
-
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -144,7 +167,7 @@ class TitleSerializer(serializers.ModelSerializer):
     def validate_year(self, value):
         now = datetime.datetime.now()
         if value > now.year:
-            raise ValidationError(message=f'Укажите корректный год выпуска')
+            raise ValidationError(message='Укажите корректный год выпуска')
         return value
 
 
