@@ -11,7 +11,6 @@ from reviews.models import User, Review, Comment, Title, Genre, Category
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериалайзер модели User"""
-    username = serializers.SlugField()
 
     class Meta:
         model = User
@@ -20,6 +19,7 @@ class UserSerializer(serializers.ModelSerializer):
             'first_name', 'last_name',
             'bio', 'role'
         )
+
 
 class UserMePatch(serializers.ModelSerializer):
     """Сериалайзер модели User"""
@@ -43,10 +43,6 @@ class EmailTokenSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         if value == 'me':
             raise ValidationError(message='Данное имя пользователя запрещено')
-        # if User.objects.filter(username=value).exists():
-        #    raise ValidationError(
-        #        message=f'Пользователь с username={value} уже существует'
-        #    )
 
 
 class MyTokenObtainPairSerializer(serializers.ModelSerializer):
@@ -57,34 +53,6 @@ class MyTokenObtainPairSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'confirmation_code')
 
-
-    '''
-    def validate_username(self, value):
-        if not User.objects.filter(username=value).exists():
-            raise ValidationError(
-                message=f'Пользователь с username={value} отсутствует'
-            )
-        return value
-
-    def validate_confirmation_code(self, value):
-        if not User.objects.filter(confirmation_code=value).exists():
-            raise ValidationError(message='Код подтверждения некорректен')
-        return value
-    
-
-    def validate(self, attrs):
-        user = get_object_or_404(
-            User, username=self.context.get('username')
-        )
-        confirmation_code = self.context.get('confirmation_code')
-        if not User.objects.filter(confirmation_code=confirmation_code,
-                                   username=user).exists():
-            if self.context['request'].method in ['POST']:
-                raise serializers.ValidationError(
-                    'Код подтверждения или имя пользователя неверны'
-                )
-        return super().validate(attrs)
-    '''
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Review"""
@@ -116,15 +84,6 @@ class ReviewSerializer(serializers.ModelSerializer):
                     'Возможно оставить только 1 отзыв на произведение'
                 )
         return super().validate(attrs)
-
-
-'''
-    def validate_score(self, value):
-        if value < 1 or value > 10:
-            raise ValidationError(
-                message='Возможная оценка: от 1 до 10'
-            )
-'''
 
 
 class CommentSerializer(serializers.ModelSerializer):

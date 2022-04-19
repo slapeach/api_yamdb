@@ -26,7 +26,6 @@ INSTALLED_APPS = [
     'djoser',
     'django_filters',
     'rest_framework_simplejwt',
-    #'rest_framework.authtoken',
     'api.apps.ApiConfig',
     'reviews.apps.ReviewsConfig',
 ]

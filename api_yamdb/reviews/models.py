@@ -24,6 +24,13 @@ class User(AbstractUser):
 
     REQUIRED_FIELD = ['username', 'email']
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['email', 'username'],
+                                    name='unique_user')
+        ]
+        ordering = ['username']
+
     def __str__(self):
         return self.username
 
@@ -33,6 +40,9 @@ class Category(models.Model):
     name = models.CharField(max_length=256)
     slug = models.SlugField(max_length=50, unique=True)
 
+    class Meta:
+        ordering = ['name']
+
     def __str__(self):
         return self.name
 
@@ -41,6 +51,9 @@ class Genre(models.Model):
     """Модель Genre"""
     name = models.CharField(max_length=256)
     slug = models.SlugField(max_length=50, unique=True)
+
+    class Meta:
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -57,6 +70,9 @@ class Title(models.Model):
     )
     description = models.TextField(blank=True)
     year = models.PositiveSmallIntegerField()
+
+    class Meta:
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -90,6 +106,7 @@ class Review(models.Model):
             models.UniqueConstraint(fields=['title', 'author'],
                                     name='unique_review')
         ]
+        ordering = ['-pub_date']
 
     def __str__(self):
         return self.text
@@ -104,6 +121,9 @@ class Comment(models.Model):
     pub_date = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True
     )
+
+    class Meta:
+        ordering = ['-pub_date']
 
     def __str__(self):
         return self.text
