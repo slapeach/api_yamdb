@@ -96,28 +96,10 @@ class APIsend_code(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        confirmation_code = ''.join(
-            secrets.choice(
-                string.ascii_uppercase + string.digits) for _ in range(9))
+        confirmation_code = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(9))
         serializer = EmailTokenSerializer(data=request.data)
-        if User.objects.filter(username=request.data.get('username'), email=request.data.get('email')).exists():
-            send_mail(
-                'Регистрация YAMDB',
-                f'Для подтверждения регистрации'
-                f'используйте код подвтерждения:'
-                f'{confirmation_code}',
-                'yamdb@gmail.com',
-                [serializer.data['email']],
-                fail_silently=False
-            )
-            return Response(serializer.data,
-                            status=status.HTTP_200_OK)
-
         if serializer.is_valid():
-            serializer.save(
-                username=request.data['username'],
-                confirmation_code=confirmation_code
-            )
+            serializer.save(username=request.data['username'], confirmation_code=confirmation_code)
             send_mail(
                 'Регистрация YAMDB',
                 f'Для подтверждения регистрации'
@@ -131,6 +113,18 @@ class APIsend_code(APIView):
                             status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
+
+class APIsend_token(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        token = RefreshToken.for_user(request.user)
+        if User.objects.filter(username=request.data['username'], confirmation_code=request.data['confirmation_code']).exists():
+            return Response({'token': str(token.access_token)},
+                            status=status.HTTP_200_OK)
+        else:
+            return Response('ошибка',
                             status=status.HTTP_400_BAD_REQUEST)
 
 
