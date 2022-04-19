@@ -42,12 +42,18 @@ class IsSuperUser(permissions.BasePermission):
             request.user.is_superuser
         )
 
+    def has_object_permission(self, request, view, obj):
+        return request.user.is_superuser
+
 
 class IsAdmin(permissions.BasePermission):
     """Пермишен для доступа  к изменению контента
        только модераторам или авторам"""
 
     def has_permission(self, request, view):
+        return request.user.is_staff or (request.user.role == 'admin')
+
+    def has_object_permission(self, request, view, obj):
         return request.user.is_staff or (request.user.role == 'admin')
 
 
