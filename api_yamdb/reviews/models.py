@@ -1,15 +1,15 @@
-
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-USER = "user"
-ADMIN = "admin"
-MODERATOR = "moderator"
+
+USER = 'user'
+ADMIN = 'admin'
+MODERATOR = 'moderator'
 CHOICES = (
-    (USER, "user"),
-    (ADMIN, "admin"),
-    (MODERATOR, "moderator"),
+    (USER, 'user'),
+    (ADMIN, 'admin'),
+    (MODERATOR, 'moderator'),
 )
 
 
@@ -20,25 +20,12 @@ class User(AbstractUser):
     username = models.CharField(max_length=40, unique=True)
     confirmation_code = models.CharField(max_length=10, blank=True)
     is_staff = models.BooleanField(default=False)
-    is_activ = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
 
     REQUIRED_FIELD = ['username', 'email']
 
     def __str__(self):
         return self.username
-
-# class User(AbstractUser):
-#     bio = models.TextField('Биография', blank=True,)
-#     role = models.CharField(max_length=20, choices=CHOICES, default=USER)
-#     email = models.EmailField(unique=True)
-#     username = models.CharField(max_length=40, unique=True)
-#     confirmation_code = models.CharField(max_length=10, blank=True)
-#     is_staff = models.BooleanField(default=False)
-#     REQUIRED_FIELD = ['username', 'email']
-#     #USERNAME_FIELD = 'username'
-
-#     def __str__(self):
-#         return self.username
 
 
 class Category(models.Model):
@@ -117,3 +104,6 @@ class Comment(models.Model):
     pub_date = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True
     )
+
+    def __str__(self):
+        return self.text
