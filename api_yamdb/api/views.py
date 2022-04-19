@@ -37,11 +37,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 class UserViewSet(viewsets.ModelViewSet):
     """Вьюсет сериалайзера UserSerializer"""
-<<<<<<< HEAD
+
     permission_classes = (IsAuthenticated, IsAdmin,)
-=======
-    permission_classes = (IsAuthenticated, IsAdminOrReadOnly, )
->>>>>>> 5991984b6b6d8be6f56e2a53db986d6b990bf01c
     pagination_class = PageNumberPagination
     queryset = User.objects.all()
     serializer_class = UserSerializer
