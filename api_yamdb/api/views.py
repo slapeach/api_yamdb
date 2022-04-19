@@ -47,8 +47,6 @@ class UserViewSet(viewsets.ModelViewSet):
     filterset_fields = ('username',)
     search_fields = ['username']
 
-
-
     def retrieve(self, request, username=None):
         queryset = User.objects.all()
         user = get_object_or_404(queryset, username=username)
