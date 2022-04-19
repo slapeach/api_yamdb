@@ -8,23 +8,17 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
 from rest_framework import viewsets, filters
 from rest_framework.pagination import PageNumberPagination
-<<<<<<< HEAD
-=======
-from reviews.models import User, Title, Review, Comment, Category, Genre
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly, IsAdminUser
->>>>>>> master
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import (AllowAny, IsAuthenticatedOrReadOnly,
-                                        IsAuthenticated)
+                                        IsAuthenticated, IsAdminUser)
 from rest_framework.decorators import action
 
 from reviews.models import User, Title, Review, Category, Genre
-from .serializers import (UserSerializer, ReviewSerializer,
+from .serializers import (UserMePatch, UserSerializer, ReviewSerializer,
                           CommentSerializer, TitleSerializer,
                           TitleCreateSerializer, CategorySerializer,
-<<<<<<< HEAD
                           GenreSerializer, EmailTokenSerializer,
                           MyTokenObtainPairSerializer
                           )
@@ -32,22 +26,6 @@ from .permissions import (IsAuthorOrReadOnly, IsSuperUser, IsUserOrReadOnly,
                           IsModeratorOrReadOnly, IsAdminOrReadOnly,
                           IsAdmin, IsAuthorOrStaffOrReadOnly,
                           IsAutenticatedOrAdminOrReadOnly)
-=======
-                          GenreSerializer, EmailTokenSerializer, MyTokenObtainPairSerializer,
-                          UserMePatch)
-
-from .permissions import (IsAuthorOrReadOnly, IsSuperUser, IsUserOrReadOnly,
-                          IsModeratorOrReadOnly, IsAdminOrReadOnly,
-                          IsAdmin)
-from rest_framework.permissions import (AllowAny, IsAuthenticatedOrReadOnly,
-                                        IsAuthenticated, IsAdminUser)
-from .mixins import ListCreateDestroyMixin
-from rest_framework import status
-from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.decorators import action
->>>>>>> master
-
 from .mixins import ListCreateDestroyMixin
 
 
@@ -62,45 +40,14 @@ class UserViewSet(viewsets.ModelViewSet):
     filterset_fields = ('username',)
     search_fields = ['username']
 
-    @action(methods=['GET', 'PATCH'], detail=False,
-            permission_classes=(IsAuthenticated,),
-            url_path='me')
-    def get_account_information(self, request):
-        user = get_object_or_404(User, username=request.user.username)
-        serializer = UserSerializer(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def patch_account_information(self, request):
-        serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data,
-                            status=status.HTTP_200_OK)
-        else:
-            return Response(serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
-
-    def perform_create(self, serializer):
-        try:
-            username = self.kwargs.get('username')
-            email = self.kwargs.get('email')
-            if User.objects.filter(username=username).exists():
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-            if User.objects.filter(email=email).exists():
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-            else:
-                serializer.save()
-        except IntegrityError:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-
     def retrieve(self, request, username=None):
         queryset = User.objects.all()
         user = get_object_or_404(queryset, username=username)
         serializer = UserSerializer(user)
         return Response(serializer.data,
                         status=status.HTTP_200_OK)
-   
-  
+
+
     @action(methods=['post'],
             detail=False,
             permission_classes=(IsAdminUser,))
@@ -143,7 +90,6 @@ class UserViewSet(viewsets.ModelViewSet):
                 else:
                     return Response(serializer.errors,
                                     status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class APIsend_code(APIView):
@@ -193,13 +139,13 @@ class APIsend_token(APIView):
 
     def post(self, request):
         serializer = MyTokenObtainPairSerializer(data=request.data)
-<<<<<<< HEAD
-        if serializer.is_valid(raise_exception=True):
+        serializer.is_valid(raise_exception=True)
+        user = get_object_or_404(User, username=serializer.data.get("username"))
+        if serializer.data.get('confirmation_code') == user.confirmation_code:
             token = RefreshToken.for_user(request.user).access_token
             return Response({'token': str(token)}, status=status.HTTP_200_OK)
-        else:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
+        return Response({'ошибка авторизации': 'Код подтверждения некорректен'},
+                        status=status.HTTP_400_BAD_REQUEST)
 
 '''
     def post(self, request):
@@ -236,7 +182,7 @@ class APIPatch_me(APIView):
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
 '''
-=======
+'''
         serializer.is_valid(raise_exception=True)
         user = get_object_or_404(User, username=serializer.data.get("username"))
         if serializer.data.get('confirmation_code') == user.confirmation_code:
@@ -244,7 +190,7 @@ class APIPatch_me(APIView):
             return Response({'token': str(token)}, status=status.HTTP_200_OK)
         return Response({'ошибка авторизации': 'Код подтверждения некорректен'},
                         status=status.HTTP_400_BAD_REQUEST)
->>>>>>> master
+'''
 
 
 class ReviewSet(viewsets.ModelViewSet):

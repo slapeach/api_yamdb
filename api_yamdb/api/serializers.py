@@ -43,15 +43,10 @@ class EmailTokenSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         if value == 'me':
             raise ValidationError(message='Данное имя пользователя запрещено')
-<<<<<<< HEAD
-        if User.objects.filter(username=value).exists():
-            raise ValidationError(
-                message=f'Пользователь с username={value} уже существует'
-            )
-=======
-        #if User.objects.filter(username=value).exists():
-         #   raise ValidationError(message=f'Пользователь с username={value} уже существует')
->>>>>>> master
+        # if User.objects.filter(username=value).exists():
+        #    raise ValidationError(
+        #        message=f'Пользователь с username={value} уже существует'
+        #    )
 
 
 class MyTokenObtainPairSerializer(serializers.ModelSerializer):
@@ -62,7 +57,7 @@ class MyTokenObtainPairSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'confirmation_code')
 
-<<<<<<< HEAD
+
     '''
     def validate_username(self, value):
         if not User.objects.filter(username=value).exists():
@@ -75,7 +70,7 @@ class MyTokenObtainPairSerializer(serializers.ModelSerializer):
         if not User.objects.filter(confirmation_code=value).exists():
             raise ValidationError(message='Код подтверждения некорректен')
         return value
-    '''
+    
 
     def validate(self, attrs):
         user = get_object_or_404(
@@ -89,9 +84,7 @@ class MyTokenObtainPairSerializer(serializers.ModelSerializer):
                     'Код подтверждения или имя пользователя неверны'
                 )
         return super().validate(attrs)
-=======
->>>>>>> master
-
+    '''
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Review"""
