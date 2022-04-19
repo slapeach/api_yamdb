@@ -8,6 +8,11 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
 from rest_framework import viewsets, filters
 from rest_framework.pagination import PageNumberPagination
+<<<<<<< HEAD
+=======
+from reviews.models import User, Title, Review, Comment, Category, Genre
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly, IsAdminUser
+>>>>>>> master
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -19,6 +24,7 @@ from reviews.models import User, Title, Review, Category, Genre
 from .serializers import (UserSerializer, ReviewSerializer,
                           CommentSerializer, TitleSerializer,
                           TitleCreateSerializer, CategorySerializer,
+<<<<<<< HEAD
                           GenreSerializer, EmailTokenSerializer,
                           MyTokenObtainPairSerializer
                           )
@@ -26,6 +32,21 @@ from .permissions import (IsAuthorOrReadOnly, IsSuperUser, IsUserOrReadOnly,
                           IsModeratorOrReadOnly, IsAdminOrReadOnly,
                           IsAdmin, IsAuthorOrStaffOrReadOnly,
                           IsAutenticatedOrAdminOrReadOnly)
+=======
+                          GenreSerializer, EmailTokenSerializer, MyTokenObtainPairSerializer,
+                          UserMePatch)
+
+from .permissions import (IsAuthorOrReadOnly, IsSuperUser, IsUserOrReadOnly,
+                          IsModeratorOrReadOnly, IsAdminOrReadOnly,
+                          IsAdmin)
+from rest_framework.permissions import (AllowAny, IsAuthenticatedOrReadOnly,
+                                        IsAuthenticated, IsAdminUser)
+from .mixins import ListCreateDestroyMixin
+from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.decorators import action
+>>>>>>> master
 
 from .mixins import ListCreateDestroyMixin
 
@@ -78,6 +99,51 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = UserSerializer(user)
         return Response(serializer.data,
                         status=status.HTTP_200_OK)
+   
+  
+    @action(methods=['post'],
+            detail=False,
+            permission_classes=(IsAdminUser,))
+    def user_create(self, request):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data,
+                            status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['get', 'patch'],
+            detail=False,
+            permission_classes=(IsAuthenticated,),
+            url_path='me',)
+    def user_data(self, request):
+        if request.method == 'GET':
+            user = get_object_or_404(User, username=request.user.username)
+            serializer = UserSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        elif request.method == 'PATCH':
+            user = get_object_or_404(User, username=request.user.username)
+            if request.user.role == 'user':
+                serializer = UserMePatch(user, data=request.data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response(serializer.data,
+                                    status=status.HTTP_200_OK)
+                else:
+                    return Response(serializer.errors,
+                                    status=status.HTTP_400_BAD_REQUEST)
+            else:
+                serializer = UserSerializer(user, data=request.data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response(serializer.data,
+                                    status=status.HTTP_200_OK)
+                else:
+                    return Response(serializer.errors,
+                                    status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class APIsend_code(APIView):
@@ -88,6 +154,19 @@ class APIsend_code(APIView):
             secrets.choice(
                 string.ascii_uppercase + string.digits) for _ in range(9))
         serializer = EmailTokenSerializer(data=request.data)
+        if User.objects.filter(username=request.data.get('username'), email=request.data.get('email')).exists():
+            send_mail(
+                'Регистрация YAMDB',
+                f'Для подтверждения регистрации'
+                f'используйте код подвтерждения:'
+                f'{confirmation_code}',
+                'yamdb@gmail.com',
+                [serializer.data['email']],
+                fail_silently=False
+            )
+            return Response(serializer.data,
+                            status=status.HTTP_200_OK)
+
         if serializer.is_valid():
             serializer.save(
                 username=request.data['username'],
@@ -114,6 +193,7 @@ class APIsend_token(APIView):
 
     def post(self, request):
         serializer = MyTokenObtainPairSerializer(data=request.data)
+<<<<<<< HEAD
         if serializer.is_valid(raise_exception=True):
             token = RefreshToken.for_user(request.user).access_token
             return Response({'token': str(token)}, status=status.HTTP_200_OK)
@@ -156,6 +236,15 @@ class APIPatch_me(APIView):
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
 '''
+=======
+        serializer.is_valid(raise_exception=True)
+        user = get_object_or_404(User, username=serializer.data.get("username"))
+        if serializer.data.get('confirmation_code') == user.confirmation_code:
+            token = RefreshToken.for_user(request.user).access_token
+            return Response({'token': str(token)}, status=status.HTTP_200_OK)
+        return Response({'ошибка авторизации': 'Код подтверждения некорректен'},
+                        status=status.HTTP_400_BAD_REQUEST)
+>>>>>>> master
 
 
 class ReviewSet(viewsets.ModelViewSet):

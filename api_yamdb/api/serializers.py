@@ -21,6 +21,19 @@ class UserSerializer(serializers.ModelSerializer):
             'bio', 'role'
         )
 
+class UserMePatch(serializers.ModelSerializer):
+    """Сериалайзер модели User"""
+    username = serializers.SlugField()
+    role = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = (
+            'username', 'email',
+            'first_name', 'last_name',
+            'bio', 'role'
+        )
+
 
 class EmailTokenSerializer(serializers.ModelSerializer):
     class Meta:
@@ -30,18 +43,26 @@ class EmailTokenSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         if value == 'me':
             raise ValidationError(message='Данное имя пользователя запрещено')
+<<<<<<< HEAD
         if User.objects.filter(username=value).exists():
             raise ValidationError(
                 message=f'Пользователь с username={value} уже существует'
             )
+=======
+        #if User.objects.filter(username=value).exists():
+         #   raise ValidationError(message=f'Пользователь с username={value} уже существует')
+>>>>>>> master
 
 
 class MyTokenObtainPairSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(max_length=40, required=True)
+    confirmation_code = serializers.CharField(max_length=10, required=True)
 
     class Meta:
         model = User
         fields = ('username', 'confirmation_code')
 
+<<<<<<< HEAD
     '''
     def validate_username(self, value):
         if not User.objects.filter(username=value).exists():
@@ -68,6 +89,8 @@ class MyTokenObtainPairSerializer(serializers.ModelSerializer):
                     'Код подтверждения или имя пользователя неверны'
                 )
         return super().validate(attrs)
+=======
+>>>>>>> master
 
 
 class ReviewSerializer(serializers.ModelSerializer):
