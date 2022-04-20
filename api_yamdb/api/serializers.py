@@ -4,6 +4,7 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
+from rest_framework.validators import UniqueValidator
 from django.core.exceptions import ValidationError
 
 from reviews.models import User, Review, Comment, Title, Genre, Category
@@ -98,6 +99,15 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class GenreSerializer(serializers.ModelSerializer):
     """Сериалайзер модели Genre"""
+    slug = serializers.SlugField(
+        max_length=100,
+        validators=[UniqueValidator(
+            queryset=Genre.objects.all(),
+            message='Поле slug должно быть уникальным!'
+            )
+        ]
+    )
+
     class Meta:
         model = Genre
         fields = ('name', 'slug')
@@ -105,6 +115,15 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
     """Сериалайзер модели Category"""
+    slug = serializers.SlugField(
+        max_length=100,
+        validators=[UniqueValidator(
+            queryset=Category.objects.all(),
+            message='Поле slug должно быть уникальным!'
+            )
+        ]
+    )
+
     class Meta:
         model = Category
         fields = ('name', 'slug',)
