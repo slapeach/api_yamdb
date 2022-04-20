@@ -4,7 +4,7 @@ from rest_framework import routers
 from .views import (ReviewSet, CommentViewSet,
                     UserViewSet, GenreViewSet,
                     CategoryViewSet, TitleViewSet,
-                    APIsend_code, APIsend_token)
+                    APISendCode, APISendToken)
 
 
 app_name = 'api'
@@ -24,7 +24,7 @@ router.register(r'genres', GenreViewSet, basename='genres')
 router.register(r'categories', CategoryViewSet, basename='categories')
 
 urlpatterns = [
-    path('v1/auth/signup/', APIsend_code.as_view()),
-    path('v1/auth/token/', APIsend_token.as_view(), name='token_obtain_pair'),
+    path('v1/auth/signup/', APISendCode.as_view(), name='signup'),
+    path('v1/auth/token/', APISendToken.as_view(), name='get_token'),
     path('v1/', include(router.urls)),
 ]
