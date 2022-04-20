@@ -1,7 +1,5 @@
 from rest_framework import permissions
 
-from reviews.models import ADMIN, MODERATOR
-
 
 class IsAdmin(permissions.BasePermission):
     """Пермишен для доступа  к изменению контента

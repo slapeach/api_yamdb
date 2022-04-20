@@ -1,32 +1,28 @@
-import string
 import secrets
+import string
 
-from django.db.models import Avg
 from django.core.mail import EmailMessage
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.response import Response
-from rest_framework import viewsets, filters
+from rest_framework import filters, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
-from rest_framework import status
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
+from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.permissions import (AllowAny, IsAuthenticatedOrReadOnly,
-                                        IsAuthenticated)
-from rest_framework.decorators import action
 
-from reviews.models import User, Title, Review, Category, Genre
-from .serializers import (UserSerializer, ReviewSerializer,
-                          CommentSerializer, TitleSerializer,
-                          TitleCreateSerializer, CategorySerializer,
-                          GenreSerializer, EmailTokenSerializer,
-                          TokenObtainPairSerializer
-                          )
-from .permissions import (IsAdminOrReadOnly,
-                          IsAdmin, IsAuthorOrStaffOrReadOnly
-                          )
-from .mixins import ListCreateDestroyMixin
+from reviews.models import Category, Genre, Review, Title, User
 from .filters import TitleFilter
+from .mixins import ListCreateDestroyMixin
+from .permissions import IsAdmin, IsAdminOrReadOnly, IsAuthorOrStaffOrReadOnly
+from .serializers import (CategorySerializer, CommentSerializer,
+                          EmailTokenSerializer, GenreSerializer,
+                          ReviewSerializer, TitleCreateSerializer,
+                          TitleSerializer, TokenObtainPairSerializer,
+                          UserSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
