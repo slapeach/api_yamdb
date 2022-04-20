@@ -81,7 +81,6 @@ class APISendCode(APIView):
                              to=[serializer.validated_data['email']],
                              )
         email.send()
-
         return Response(serializer.data,
                         status=status.HTTP_200_OK)
 
@@ -95,7 +94,6 @@ class APISendToken(APIView):
         serializer.is_valid(raise_exception=True)
         user = get_object_or_404(
             User, username=serializer.validated_data['username']
-
         )
 
         if serializer.validated_data['confirmation_code'] == (
