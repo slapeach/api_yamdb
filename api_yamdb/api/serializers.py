@@ -21,7 +21,6 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
-
 class EmailTokenSerializer(serializers.ModelSerializer):
     """Сериализатор модели User для получения кода"""
     class Meta:

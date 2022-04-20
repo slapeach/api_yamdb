@@ -1,7 +1,6 @@
 import string
 import secrets
 import django_filters
-#from django.core.mail import send_mail
 from django.core.mail import EmailMessage
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -49,15 +48,15 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
         elif request.method == 'PATCH':
             serializer = UserSerializer(
-                    request.user, data=request.data, partial=True
-                )
+                request.user, data=request.data, partial=True
+            )
             serializer.is_valid(raise_exception=True)
             if request.user.is_user:
                 serializer.save(role='user')
             else:
                 serializer.save()
             return Response(serializer.data,
-                                status=status.HTTP_200_OK)
+                            status=status.HTTP_200_OK)
 
 
 class APISendCode(APIView):
@@ -78,12 +77,11 @@ class APISendCode(APIView):
                              f'используйте код подвтерждения:'
                              f'{confirmation_code}',
                              to=[serializer.validated_data['email']],
-        )
+                             )
         email.send()
 
         return Response(serializer.data,
                         status=status.HTTP_200_OK)
-
 
 
 class APISendToken(APIView):
@@ -96,7 +94,8 @@ class APISendToken(APIView):
         user = get_object_or_404(
             User, username=serializer.validated_data['username']
         )
-        if serializer.validated_data['confirmation_code'] == user.confirmation_code:
+        if serializer.validated_data['confirmation_code'] == (
+                user.confirmation_code):
             token = RefreshToken.for_user(user).access_token
             return Response({'token': str(token)}, status=status.HTTP_200_OK)
         return Response(
