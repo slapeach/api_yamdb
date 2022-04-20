@@ -1,11 +1,11 @@
-from django.utils import timezone
+from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueValidator
-from django.core.exceptions import ValidationError
 
-from reviews.models import User, Review, Comment, Title, Genre, Category
+from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
 class UserSerializer(serializers.ModelSerializer):
