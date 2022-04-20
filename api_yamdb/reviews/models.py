@@ -30,6 +30,8 @@ class User(AbstractUser):
                                     name='unique_user')
         ]
         ordering = ['username']
+        verbose_name = 'user'
+        verbose_name_plural = 'users'
 
     def __str__(self):
         return self.username
@@ -42,6 +44,8 @@ class Category(models.Model):
 
     class Meta:
         ordering = ['name']
+        verbose_name = 'category'
+        verbose_name_plural = 'categories'
 
     def __str__(self):
         return self.name
@@ -54,6 +58,8 @@ class Genre(models.Model):
 
     class Meta:
         ordering = ['name']
+        verbose_name = 'genre'
+        verbose_name_plural = 'genres'
 
     def __str__(self):
         return self.name
@@ -73,6 +79,8 @@ class Title(models.Model):
 
     class Meta:
         ordering = ['name']
+        verbose_name = 'title'
+        verbose_name_plural = 'titles'
 
     def __str__(self):
         return self.name
@@ -107,6 +115,8 @@ class Review(models.Model):
                                     name='unique_review')
         ]
         ordering = ['-pub_date']
+        verbose_name = 'review'
+        verbose_name_plural = 'reviews'
 
     def __str__(self):
         return self.text
@@ -124,6 +134,8 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ['-pub_date']
+        verbose_name = 'comment'
+        verbose_name_plural = 'comments'
 
     def __str__(self):
         return self.text

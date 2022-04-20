@@ -1,6 +1,7 @@
 import string
 import secrets
 import django_filters
+from django.contrib.auth import authenticate
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -109,10 +110,10 @@ class APIsend_token(APIView):
         serializer = MyTokenObtainPairSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = get_object_or_404(
-            User, username=serializer.data.get("username")
+            User, username=serializer.data.get('username')
         )
         if serializer.data.get('confirmation_code') == user.confirmation_code:
-            token = RefreshToken.for_user(request.user).access_token
+            token = RefreshToken.for_user(user).access_token
             return Response({'token': str(token)}, status=status.HTTP_200_OK)
         return Response(
             {'ошибка авторизации': 'Код подтверждения некорректен'},
