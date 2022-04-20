@@ -1,6 +1,7 @@
 import string
 import secrets
 
+from django.db.models import Avg
 from django.core.mail import EmailMessage
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -152,7 +153,9 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет сериалайзера TitleSerializer"""
-    queryset = Title.objects.all()
+    queryset = Title.objects.all().annotate(
+        Avg('reviews__score')).order_by('name')
+
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = (DjangoFilterBackend,)
@@ -163,30 +166,6 @@ class TitleViewSet(viewsets.ModelViewSet):
         if self.action in ['list', 'retrieve']:
             return TitleSerializer
         return TitleCreateSerializer
-
-    # def rating(self):
-    #     title_id = self.kwargs.get('title_id')
-    #     reviews = Review.objects.filter(title_id=title_id)
-    #     if reviews.count() > 0:
-    #         scores = reviews.aggregate(Avg('score'))
-    #         rating = math.ceil(scores.get('score__avg'))
-    #         return rating
-    #     return None
-
-    # ratin = rating(self)
-    
-
-    # def perform_create(self, serializer):
-    #     title_id = self.kwargs.get('title_id')
-    #     reviews = Review.objects.filter(title_id=title_id)
-    #     if reviews.count() > 0:
-    #         scores = reviews.aggregate(Avg('score'))
-    #         rating = math.ceil(scores.get('score__avg'))
-    #     else:
-    #         rating = None
-    #     serializer.save(
-    #         rating=rating
-    #     )
 
 
 class CategoryViewSet(ListCreateDestroyMixin):

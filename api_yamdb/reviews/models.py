@@ -92,6 +92,7 @@ class Title(models.Model):
     )
     description = models.TextField(blank=True, verbose_name='Описание')
     year = models.IntegerField(verbose_name='Год создания')
+    rating = models.PositiveSmallIntegerField(max_length=10, null=True)
 
     class Meta:
         ordering = ['name']

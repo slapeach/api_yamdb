@@ -120,7 +120,9 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class TitleSerializer(serializers.ModelSerializer):
     """Сериалайзер модели Title"""
-    rating = serializers.SerializerMethodField(read_only=True)
+    rating = serializers.IntegerField(
+        source='reviews__score__avg', read_only=True
+    )
     category = CategorySerializer()
     genre = GenreSerializer(many=True)
 
@@ -133,14 +135,16 @@ class TitleSerializer(serializers.ModelSerializer):
             'genre', 'category'
         )
 
-    def get_rating(self, obj):
-        title_id = obj.id
-        reviews = Review.objects.filter(title_id=title_id)
-        if reviews.count() > 0:
-            scores = reviews.aggregate(Avg('score'))
-            rating = math.ceil(scores.get('score__avg'))
-            return rating
-        return None
+    # def get_rating(self, obj):
+    #     pass
+    # def get_rating(self, obj):
+    #     title_id = obj.id
+    #     reviews = Review.objects.filter(title_id=title_id)
+    #     if reviews.count() > 0:
+    #         scores = reviews.aggregate(Avg('score'))
+    #         rating = math.ceil(scores.get('score__avg'))
+    #         return rating
+    #     return None
 
     def validate_year(self, value):
         now = timezone.now()
