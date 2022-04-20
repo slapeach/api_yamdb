@@ -22,19 +22,6 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
-class UserMePatch(serializers.ModelSerializer):
-    """Сериалайзер модели User"""
-    role = serializers.CharField(read_only=True)
-
-    class Meta:
-        model = User
-        fields = (
-            'username', 'email',
-            'first_name', 'last_name',
-            'bio', 'role'
-        )
-
-
 class EmailTokenSerializer(serializers.ModelSerializer):
     """Сериализатор модели User для получения кода"""
     class Meta:
@@ -47,7 +34,7 @@ class EmailTokenSerializer(serializers.ModelSerializer):
         return value
 
 
-class MyTokenObtainPairSerializer(serializers.Serializer):
+class TokenObtainPairSerializer(serializers.Serializer):
     """Сериализатор модели User для получения токена"""
     username = serializers.CharField(max_length=40, required=True)
     confirmation_code = serializers.CharField(max_length=10, required=True)

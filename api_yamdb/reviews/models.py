@@ -13,7 +13,6 @@ CHOICES = (
 )
 
 
-
 class User(AbstractUser):
     bio = models.TextField(
         blank=True,
@@ -54,7 +53,7 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        return  self.role == ADMIN or self.is_staff or self.is_superuser
+        return self.role == ADMIN or self.is_staff or self.is_superuser
 
     @property
     def is_user(self):
