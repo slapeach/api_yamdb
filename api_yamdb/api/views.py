@@ -1,7 +1,6 @@
 import string
 import secrets
 
-import django_filters
 from django.db.models import Avg
 from django.core.mail import EmailMessage
 from django.shortcuts import get_object_or_404
@@ -27,6 +26,7 @@ from .permissions import (IsAdminOrReadOnly,
                           IsAdmin, IsAuthorOrStaffOrReadOnly
                           )
 from .mixins import ListCreateDestroyMixin
+from .filters import TitleFilter
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -95,6 +95,7 @@ class APISendToken(APIView):
         user = get_object_or_404(
             User, username=serializer.validated_data['username']
         )
+
         if serializer.validated_data['confirmation_code'] == (
                 user.confirmation_code):
             token = RefreshToken.for_user(user).access_token
@@ -148,31 +149,14 @@ class CommentViewSet(viewsets.ModelViewSet):
         )
 
 
-class TitleFilterSet(django_filters.FilterSet):
-    """Фильтр для Title по Genre и Category"""
-    name = django_filters.CharFilter(
-        field_name='name', lookup_expr='icontains'
-    )
-    genre = django_filters.CharFilter(field_name='genre__slug')
-    category = django_filters.CharFilter(field_name='category__slug')
-
-    class Meta:
-        model = Title
-        fields = [
-            'name', 'year',
-            'genre', 'category'
-        ]
-
-
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет сериалайзера TitleSerializer"""
     queryset = Title.objects.all().annotate(
-        Avg('reviews__score')
-    ).order_by('name')
+        Avg('reviews__score')).order_by('name')
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = (DjangoFilterBackend,)
-    filterset_class = TitleFilterSet
+    filterset_class = TitleFilter
     pagination_class = PageNumberPagination
 
     def get_serializer_class(self):
