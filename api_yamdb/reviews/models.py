@@ -93,8 +93,8 @@ class Review(models.Model):
     score = models.PositiveSmallIntegerField(
         default=1,
         validators=[
-            MinValueValidator(1),
-            MaxValueValidator(10)
+            MinValueValidator(1, 'Минимальная оценка - 1'),
+            MaxValueValidator(10, 'Максимальная оценка - 10')
         ]
     )
     pub_date = models.DateTimeField(

@@ -1,5 +1,5 @@
 import math
-import datetime
+from django.utils import timezone
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
@@ -67,13 +67,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = ('id', 'text', 'author', 'score', 'pub_date', 'title')
 
-    def validate_author(self, value):
-        if self.request.user.username != value:
-            raise ValidationError(
-                message='Отзыв можно оставить только от своего имени'
-            )
-        return value
-
     def validate(self, attrs):
         title = get_object_or_404(
             Title, id=self.context['view'].kwargs.get('title_id')
@@ -84,6 +77,10 @@ class ReviewSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     'Возможно оставить только 1 отзыв на произведение'
                 )
+        if attrs['score'] < 1 or attrs['score'] > 10:
+            raise ValidationError(
+                message='Возможная оценка: от 1 до 10'
+            )
         return super().validate(attrs)
 
 
@@ -139,7 +136,7 @@ class TitleSerializer(serializers.ModelSerializer):
         return None
 
     def validate_year(self, value):
-        now = datetime.datetime.now()
+        now = timezone.now()
         if value > now.year:
             raise ValidationError(message='Укажите корректный год выпуска')
         return value
