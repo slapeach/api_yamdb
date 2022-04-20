@@ -1,7 +1,7 @@
 import string
 import secrets
+
 import django_filters
-from django.contrib.auth import authenticate
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -81,25 +81,22 @@ class APIsend_code(APIView):
             secrets.choice(
                 string.ascii_uppercase + string.digits) for _ in range(9))
         serializer = EmailTokenSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(
-                username=request.data['username'],
-                confirmation_code=confirmation_code
-            )
-            send_mail(
-                'Регистрация YAMDB',
-                f'Для подтверждения регистрации'
-                f'используйте код подвтерждения:'
-                f'{confirmation_code}',
-                'yamdb@gmail.com',
-                [serializer.data['email']],
-                fail_silently=False
-            )
-            return Response(serializer.data,
-                            status=status.HTTP_200_OK)
-        else:
-            return Response(serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(
+            username=serializer.validated_data['username'],
+            confirmation_code=confirmation_code
+        )
+        send_mail(
+            'Регистрация YAMDB',
+            f'Для подтверждения регистрации'
+            f'используйте код подвтерждения:'
+            f'{confirmation_code}',
+            'yamdb@gmail.com',
+            [serializer.data['email']],
+            fail_silently=False
+        )
+        return Response(serializer.data,
+                        status=status.HTTP_200_OK)
 
 
 class APIsend_token(APIView):
@@ -110,9 +107,10 @@ class APIsend_token(APIView):
         serializer = MyTokenObtainPairSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = get_object_or_404(
-            User, username=serializer.data.get('username')
+            User, username=serializer.validated_data['username']
         )
-        if serializer.data.get('confirmation_code') == user.confirmation_code:
+        if serializer.validated_data['confirmation_code'] == (
+                user.confirmation_code):
             token = RefreshToken.for_user(user).access_token
             return Response({'token': str(token)}, status=status.HTTP_200_OK)
         return Response(
