@@ -1,5 +1,5 @@
 import math
-import datetime
+from django.utils import timezone
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
@@ -44,6 +44,7 @@ class EmailTokenSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         if value == 'me':
             raise ValidationError(message='Данное имя пользователя запрещено')
+        return value
 
 
 class MyTokenObtainPairSerializer(serializers.Serializer):
@@ -114,7 +115,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Genre
-        fields = ('name', 'slug')
+        exclude = ('id',)
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -130,7 +131,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ('name', 'slug',)
+        exclude = ('id',)
 
 
 class TitleSerializer(serializers.ModelSerializer):
@@ -157,15 +158,9 @@ class TitleSerializer(serializers.ModelSerializer):
             return rating
         return None
 
-    def validate_year(self, value):
-        now = datetime.datetime.now()
-        if value > now.year:
-            raise ValidationError(message='Укажите корректный год выпуска')
-        return value
-
 
 class TitleCreateSerializer(serializers.ModelSerializer):
-    """Сериалайзер для модели TitleGenre"""
+    """Сериалайзер для модели Title для Post-запросов"""
     category = serializers.SlugRelatedField(
         slug_field='slug', queryset=Category.objects.all()
     )
@@ -175,4 +170,14 @@ class TitleCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = ('id', 'name', 'year', 'description', 'genre', 'category')
+        fields = (
+            'id', 'name',
+            'year', 'description',
+            'genre', 'category'
+        )
+    
+    def validate_year(self, value):
+        now = timezone.now()
+        if value > now.year:
+            raise ValidationError(message='Укажите корректный год выпуска')
+        return value

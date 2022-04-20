@@ -1,6 +1,8 @@
+import math
+from pickle import GET
 import string
 import secrets
-import django_filters
+from django.db.models import Avg
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -25,6 +27,7 @@ from .permissions import (IsAdminOrReadOnly,
                           IsAdmin, IsAuthorOrStaffOrReadOnly
                           )
 from .mixins import ListCreateDestroyMixin
+from .filters import TitleFilter
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -82,7 +85,7 @@ class APIsend_code(APIView):
         serializer = EmailTokenSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(
-                username=request.data['username'],
+                username=serializer.validated_data['username'],
                 confirmation_code=confirmation_code
             )
             send_mail(
@@ -112,7 +115,7 @@ class APIsend_token(APIView):
             User, username=serializer.data.get("username")
         )
         if serializer.data.get('confirmation_code') == user.confirmation_code:
-            token = RefreshToken.for_user(request.user).access_token
+            token = RefreshToken.for_user(user).access_token
             return Response({'token': str(token)}, status=status.HTTP_200_OK)
         return Response(
             {'ошибка авторизации': 'Код подтверждения некорректен'},
@@ -169,35 +172,43 @@ class CommentViewSet(viewsets.ModelViewSet):
         )
 
 
-class TitleFilterSet(django_filters.FilterSet):
-    """Фильтр для Title по Genre и Category"""
-    name = django_filters.CharFilter(
-        field_name='name', lookup_expr='icontains'
-    )
-    genre = django_filters.CharFilter(field_name='genre__slug')
-    category = django_filters.CharFilter(field_name='category__slug')
-
-    class Meta:
-        model = Title
-        fields = [
-            'name', 'year',
-            'genre', 'category'
-        ]
-
-
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет сериалайзера TitleSerializer"""
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = (DjangoFilterBackend,)
-    filterset_class = TitleFilterSet
+    filterset_class = TitleFilter
     pagination_class = PageNumberPagination
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
             return TitleSerializer
         return TitleCreateSerializer
+
+    # def rating(self):
+    #     title_id = self.kwargs.get('title_id')
+    #     reviews = Review.objects.filter(title_id=title_id)
+    #     if reviews.count() > 0:
+    #         scores = reviews.aggregate(Avg('score'))
+    #         rating = math.ceil(scores.get('score__avg'))
+    #         return rating
+    #     return None
+
+    # ratin = rating(self)
+    
+
+    # def perform_create(self, serializer):
+    #     title_id = self.kwargs.get('title_id')
+    #     reviews = Review.objects.filter(title_id=title_id)
+    #     if reviews.count() > 0:
+    #         scores = reviews.aggregate(Avg('score'))
+    #         rating = math.ceil(scores.get('score__avg'))
+    #     else:
+    #         rating = None
+    #     serializer.save(
+    #         rating=rating
+    #     )
 
 
 class CategoryViewSet(ListCreateDestroyMixin):

@@ -1,3 +1,4 @@
+from tabnanny import verbose
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -37,10 +38,11 @@ class User(AbstractUser):
 
 class Category(models.Model):
     """Модель Category"""
-    name = models.CharField(max_length=256)
+    name = models.CharField(max_length=256, verbose_name='Название категории')
     slug = models.SlugField(max_length=50, unique=True)
 
     class Meta:
+        verbose_name = 'Категория'
         ordering = ['name']
 
     def __str__(self):
@@ -49,7 +51,7 @@ class Category(models.Model):
 
 class Genre(models.Model):
     """Модель Genre"""
-    name = models.CharField(max_length=256)
+    name = models.CharField(max_length=256, verbose_name='Название жанра')
     slug = models.SlugField(max_length=50, unique=True)
 
     class Meta:
@@ -61,15 +63,17 @@ class Genre(models.Model):
 
 class Title(models.Model):
     """Модель Title"""
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, verbose_name='Название произведения')
     genre = models.ManyToManyField(
-        Genre, through='TitleGenre', blank=True
+        Genre, blank=True, verbose_name='Жанр'
     )
     category = models.ForeignKey(
-        Category, on_delete=models.SET_NULL, related_name='titles', null=True
+        Category, on_delete=models.SET_NULL,
+        related_name='titles', null=True,
+        verbose_name='Категория'
     )
-    description = models.TextField(blank=True)
-    year = models.PositiveSmallIntegerField()
+    description = models.TextField(blank=True, verbose_name='Описание')
+    year = models.IntegerField(verbose_name='Год создания')
 
     class Meta:
         ordering = ['name']
@@ -77,11 +81,6 @@ class Title(models.Model):
     def __str__(self):
         return self.name
 
-
-class TitleGenre(models.Model):
-    """Модель TitleGenre"""
-    title = models.ForeignKey(Title, on_delete=models.SET_NULL, null=True)
-    genre = models.ForeignKey(Genre, on_delete=models.SET_NULL, null=True)
 
 
 class Review(models.Model):
