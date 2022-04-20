@@ -19,7 +19,8 @@ class IsAdminOrReadOnly(permissions.BasePermission):
             request.method in permissions.SAFE_METHODS
             or request.user
             and request.user.is_authenticated
-            and (request.user.is_admin)
+            and (request.user.role == 'admin'
+                 or request.user.is_staff)
         )
 
 class IsAuthorOrStaffOrReadOnly(permissions.BasePermission):

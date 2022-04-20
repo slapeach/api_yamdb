@@ -1,4 +1,5 @@
 import math
+
 from django.utils import timezone
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
@@ -66,6 +67,10 @@ class ReviewSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     'Возможно оставить только 1 отзыв на произведение'
                 )
+        if 'score' not in attrs.keys():
+            raise serializers.ValidationError(
+                'Поле score - обязательное. Проверьте корректность данных'
+            )
         if attrs['score'] < 1 or attrs['score'] > 10:
             raise ValidationError(
                 message='Возможная оценка: от 1 до 10'
@@ -142,12 +147,6 @@ class TitleSerializer(serializers.ModelSerializer):
             return rating
         return None
 
-    def validate_year(self, value):
-        now = timezone.now()
-        if value > now.year:
-            raise ValidationError(message='Укажите корректный год выпуска')
-        return value
-
 
 class TitleCreateSerializer(serializers.ModelSerializer):
     """Сериалайзер для модели TitleGenre"""
@@ -161,3 +160,9 @@ class TitleCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = ('id', 'name', 'year', 'description', 'genre', 'category')
+
+    def validate_year(self, value):
+        now = timezone.now()
+        if value > now.year:
+            raise ValidationError(message='Укажите корректный год выпуска')
+        return value
