@@ -1,5 +1,7 @@
 from rest_framework import permissions
 
+from reviews.models import ADMIN
+
 
 class IsAdmin(permissions.BasePermission):
     """Пермишен для доступа  к изменению контента
@@ -19,9 +21,10 @@ class IsAdminOrReadOnly(permissions.BasePermission):
             request.method in permissions.SAFE_METHODS
             or request.user
             and request.user.is_authenticated
-            and (request.user.role == 'admin'
+            and (request.user.role == ADMIN
                  or request.user.is_staff)
         )
+
 
 class IsAuthorOrStaffOrReadOnly(permissions.BasePermission):
     """Пермишен для автора, админа и модератора, или только чтение"""

@@ -92,9 +92,10 @@ class GenreSerializer(serializers.ModelSerializer):
     """Сериалайзер модели Genre"""
     slug = serializers.SlugField(
         max_length=100,
-        validators=[UniqueValidator(
-            queryset=Genre.objects.all(),
-            message='Поле slug должно быть уникальным!'
+        validators=[
+            UniqueValidator(
+                queryset=Genre.objects.all(),
+                message='Поле slug должно быть уникальным!'
             )
         ]
     )
@@ -108,9 +109,10 @@ class CategorySerializer(serializers.ModelSerializer):
     """Сериалайзер модели Category"""
     slug = serializers.SlugField(
         max_length=100,
-        validators=[UniqueValidator(
-            queryset=Category.objects.all(),
-            message='Поле slug должно быть уникальным!'
+        validators=[
+            UniqueValidator(
+                queryset=Category.objects.all(),
+                message='Поле slug должно быть уникальным!'
             )
         ]
     )
@@ -154,7 +156,7 @@ class TitleCreateSerializer(serializers.ModelSerializer):
             'year', 'description',
             'genre', 'category'
         )
-    
+
     def validate_year(self, value):
         now = timezone.now()
         if value > now.year:

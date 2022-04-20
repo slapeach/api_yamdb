@@ -2,6 +2,9 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+from .validators import year_validator
+
+
 USER = 'user'
 ADMIN = 'admin'
 MODERATOR = 'moderator'
@@ -13,6 +16,7 @@ CHOICES = (
 
 
 class User(AbstractUser):
+    """Модель User"""
     bio = models.TextField(
         blank=True,
         verbose_name='Биография',
@@ -116,7 +120,7 @@ class Title(models.Model):
         verbose_name='Название произведения'
     )
     genre = models.ManyToManyField(
-        Genre, through='TitleGenre',
+        Genre,
         blank=True,
         verbose_name='Жанр произведения'
     )
@@ -130,6 +134,7 @@ class Title(models.Model):
         verbose_name='Описание произведения'
     )
     year = models.PositiveSmallIntegerField(
+        validators=[year_validator],
         verbose_name='Год публикации произведения'
     )
 
@@ -142,13 +147,8 @@ class Title(models.Model):
         return self.name
 
 
-class TitleGenre(models.Model):
-    """Модель TitleGenre"""
-    title = models.ForeignKey(Title, on_delete=models.SET_NULL, null=True)
-    genre = models.ForeignKey(Genre, on_delete=models.SET_NULL, null=True)
-
-
 class Review(models.Model):
+    """Модель Review"""
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE,
         related_name='reviews',
@@ -191,6 +191,7 @@ class Review(models.Model):
 
 
 class Comment(models.Model):
+    """Модель Comment"""
     review = models.ForeignKey(
         Review, on_delete=models.CASCADE,
         related_name='comments',
