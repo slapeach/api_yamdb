@@ -83,7 +83,6 @@ class Category(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Категория'
         ordering = ['name']
         verbose_name = 'category'
         verbose_name_plural = 'categories'
@@ -143,6 +142,11 @@ class Title(models.Model):
     def __str__(self):
         return self.name
 
+
+class TitleGenre(models.Model):
+    """Модель TitleGenre"""
+    title = models.ForeignKey(Title, on_delete=models.SET_NULL, null=True)
+    genre = models.ForeignKey(Genre, on_delete=models.SET_NULL, null=True)
 
 
 class Review(models.Model):
