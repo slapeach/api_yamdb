@@ -8,10 +8,10 @@ class IsAdmin(permissions.BasePermission):
        только администратору"""
 
     def has_permission(self, request, view):
-        return request.user.is_staff or (request.user.role == ADMIN)
+        return request.user.is_admin
 
     def has_object_permission(self, request, view, obj):
-        return request.user.is_staff or (request.user.role == ADMIN)
+        return request.user.is_admin
 
 
 class IsAdminOrReadOnly(permissions.BasePermission):
@@ -21,10 +21,8 @@ class IsAdminOrReadOnly(permissions.BasePermission):
             request.method in permissions.SAFE_METHODS
             or request.user
             and request.user.is_authenticated
-            and (request.user.role == ADMIN
-                 or request.user.is_staff)
+            and (request.user.is_admin)
         )
-
 
 class IsAuthorOrStaffOrReadOnly(permissions.BasePermission):
     """Пермишен для автора, админа и модератора, или только чтение"""
@@ -35,6 +33,6 @@ class IsAuthorOrStaffOrReadOnly(permissions.BasePermission):
             and request.user.is_authenticated
             and (request.user == obj.author
                  or request.user.is_staff
-                 or (request.user.role == ADMIN)
-                 or (request.user.role == MODERATOR))
+                 or (request.user.is_admin)
+                 or (request.user.is_moderator))
         )

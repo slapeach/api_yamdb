@@ -25,12 +25,26 @@ class User(AbstractUser):
 
     REQUIRED_FIELD = ['username', 'email']
 
+    @property
+    def is_moderator(self):
+        return self.role == MODERATOR
+
+    @property
+    def is_admin(self):
+        return self.role == ADMIN or self.is_staff or self.is_superuser
+
+    @property
+    def is_user(self):
+        return self.role == USER
+
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['email', 'username'],
                                     name='unique_user')
         ]
         ordering = ['username']
+        verbose_name = 'user'
+        verbose_name_plural = 'users'
 
     def __str__(self):
         return self.username
@@ -44,6 +58,8 @@ class Category(models.Model):
     class Meta:
         verbose_name = 'Категория'
         ordering = ['name']
+        verbose_name = 'category'
+        verbose_name_plural = 'categories'
 
     def __str__(self):
         return self.name
@@ -56,6 +72,8 @@ class Genre(models.Model):
 
     class Meta:
         ordering = ['name']
+        verbose_name = 'genre'
+        verbose_name_plural = 'genres'
 
     def __str__(self):
         return self.name
@@ -77,6 +95,8 @@ class Title(models.Model):
 
     class Meta:
         ordering = ['name']
+        verbose_name = 'title'
+        verbose_name_plural = 'titles'
 
     def __str__(self):
         return self.name
@@ -92,8 +112,8 @@ class Review(models.Model):
     score = models.PositiveSmallIntegerField(
         default=1,
         validators=[
-            MinValueValidator(1),
-            MaxValueValidator(10)
+            MinValueValidator(1, 'Минимальная оценка - 1'),
+            MaxValueValidator(10, 'Максимальная оценка - 10')
         ]
     )
     pub_date = models.DateTimeField(
@@ -106,6 +126,8 @@ class Review(models.Model):
                                     name='unique_review')
         ]
         ordering = ['-pub_date']
+        verbose_name = 'review'
+        verbose_name_plural = 'reviews'
 
     def __str__(self):
         return self.text
@@ -123,6 +145,8 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ['-pub_date']
+        verbose_name = 'comment'
+        verbose_name_plural = 'comments'
 
     def __str__(self):
         return self.text

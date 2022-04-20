@@ -22,19 +22,6 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
-class UserMePatch(serializers.ModelSerializer):
-    """Сериалайзер модели User"""
-    role = serializers.CharField(read_only=True)
-
-    class Meta:
-        model = User
-        fields = (
-            'username', 'email',
-            'first_name', 'last_name',
-            'bio', 'role'
-        )
-
-
 class EmailTokenSerializer(serializers.ModelSerializer):
     """Сериализатор модели User для получения кода"""
     class Meta:
@@ -47,7 +34,7 @@ class EmailTokenSerializer(serializers.ModelSerializer):
         return value
 
 
-class MyTokenObtainPairSerializer(serializers.Serializer):
+class TokenObtainPairSerializer(serializers.Serializer):
     """Сериализатор модели User для получения токена"""
     username = serializers.CharField(max_length=40, required=True)
     confirmation_code = serializers.CharField(max_length=10, required=True)
@@ -69,13 +56,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = ('id', 'text', 'author', 'score', 'pub_date', 'title')
 
-    def validate_author(self, value):
-        if self.request.user.username != value:
-            raise ValidationError(
-                message='Отзыв можно оставить только от своего имени'
-            )
-        return value
-
     def validate(self, attrs):
         title = get_object_or_404(
             Title, id=self.context['view'].kwargs.get('title_id')
@@ -86,6 +66,10 @@ class ReviewSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     'Возможно оставить только 1 отзыв на произведение'
                 )
+        if attrs['score'] < 1 or attrs['score'] > 10:
+            raise ValidationError(
+                message='Возможная оценка: от 1 до 10'
+            )
         return super().validate(attrs)
 
 
@@ -157,6 +141,12 @@ class TitleSerializer(serializers.ModelSerializer):
             rating = math.ceil(scores.get('score__avg'))
             return rating
         return None
+
+    def validate_year(self, value):
+        now = timezone.now()
+        if value > now.year:
+            raise ValidationError(message='Укажите корректный год выпуска')
+        return value
 
 
 class TitleCreateSerializer(serializers.ModelSerializer):
