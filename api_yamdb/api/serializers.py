@@ -21,6 +21,7 @@ class UserSerializer(serializers.ModelSerializer):
             'bio', 'role'
         )
 
+
 class UserMePatch(serializers.ModelSerializer):
     """Сериалайзер модели User"""
     role = serializers.CharField(read_only=True)
@@ -35,6 +36,7 @@ class UserMePatch(serializers.ModelSerializer):
 
 
 class EmailTokenSerializer(serializers.ModelSerializer):
+    """Сериализатор модели User для получения кода"""
     class Meta:
         model = User
         fields = ('username', 'email')
@@ -45,6 +47,7 @@ class EmailTokenSerializer(serializers.ModelSerializer):
 
 
 class MyTokenObtainPairSerializer(serializers.Serializer):
+    """Сериализатор модели User для получения токена"""
     username = serializers.CharField(max_length=40, required=True)
     confirmation_code = serializers.CharField(max_length=10, required=True)
 
@@ -54,12 +57,13 @@ class MyTokenObtainPairSerializer(serializers.Serializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Review"""
+    """Сериализатор модели Review"""
     author = SlugRelatedField(read_only=True, slug_field='username')
     title = SlugRelatedField(
         write_only=True, queryset=Title.objects.all(),
         slug_field='title', required=False
     )
+
     class Meta:
         model = Review
         fields = ('id', 'text', 'author', 'score', 'pub_date', 'title')
@@ -85,7 +89,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Comment"""
+    """Сериализатор модели Comment"""
     author = SlugRelatedField(read_only=True, slug_field='username')
     review = SlugRelatedField(
         write_only=True, queryset=Review.objects.all(),

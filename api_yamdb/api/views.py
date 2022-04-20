@@ -1,7 +1,6 @@
 import string
 import secrets
 import django_filters
-from django.db import IntegrityError
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -23,7 +22,8 @@ from .serializers import (UserMePatch, UserSerializer, ReviewSerializer,
                           MyTokenObtainPairSerializer
                           )
 from .permissions import (IsAdminOrReadOnly,
-                          IsAdmin, IsAuthorOrStaffOrReadOnly)
+                          IsAdmin, IsAuthorOrStaffOrReadOnly
+                          )
 from .mixins import ListCreateDestroyMixin
 
 
@@ -59,7 +59,9 @@ class UserViewSet(viewsets.ModelViewSet):
                     return Response(serializer.errors,
                                     status=status.HTTP_400_BAD_REQUEST)
             else:
-                serializer = UserSerializer(user, data=request.data, partial=True)
+                serializer = UserSerializer(
+                    user, data=request.data, partial=True
+                )
                 if serializer.is_valid():
                     serializer.save()
                     return Response(serializer.data,
@@ -70,6 +72,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class APIsend_code(APIView):
+    """Вьюкласс сериалайзера EmailTokenSerializer"""
     permission_classes = (AllowAny,)
 
     def post(self, request):
@@ -77,19 +80,6 @@ class APIsend_code(APIView):
             secrets.choice(
                 string.ascii_uppercase + string.digits) for _ in range(9))
         serializer = EmailTokenSerializer(data=request.data)
-        if User.objects.filter(username=request.data.get('username'), email=request.data.get('email')).exists():
-            send_mail(
-                'Регистрация YAMDB',
-                f'Для подтверждения регистрации'
-                f'используйте код подвтерждения:'
-                f'{confirmation_code}',
-                'yamdb@gmail.com',
-                [serializer.data['email']],
-                fail_silently=False
-            )
-            return Response(serializer.data,
-                            status=status.HTTP_200_OK)
-
         if serializer.is_valid():
             serializer.save(
                 username=request.data['username'],
@@ -112,20 +102,25 @@ class APIsend_code(APIView):
 
 
 class APIsend_token(APIView):
+    """Вьюкласс сериалайзера MyTokenObtainPairSerializer"""
     permission_classes = (AllowAny,)
 
     def post(self, request):
         serializer = MyTokenObtainPairSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = get_object_or_404(User, username=serializer.data.get("username"))
+        user = get_object_or_404(
+            User, username=serializer.data.get("username")
+        )
         if serializer.data.get('confirmation_code') == user.confirmation_code:
             token = RefreshToken.for_user(request.user).access_token
             return Response({'token': str(token)}, status=status.HTTP_200_OK)
-        return Response({'ошибка авторизации': 'Код подтверждения некорректен'},
-                        status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {'ошибка авторизации': 'Код подтверждения некорректен'},
+            status=status.HTTP_400_BAD_REQUEST)
 
 
 class ReviewSet(viewsets.ModelViewSet):
+    """Вьюсет сериалайзера ReviewSerializer"""
     serializer_class = ReviewSerializer
     permission_classes = [
         IsAuthenticatedOrReadOnly & IsAuthorOrStaffOrReadOnly
@@ -140,22 +135,20 @@ class ReviewSet(viewsets.ModelViewSet):
         return title.reviews
 
     def perform_create(self, serializer):
-        try:
-            title_id = self.kwargs.get('title_id')
-            author = self.request.user
-            if Review.objects.filter(
-                    author=author, title_id=title_id).exists():
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-            else:
-                serializer.save(
-                    title_id=title_id,
-                    author=author
-                )
-        except IntegrityError:
+        title_id = self.kwargs.get('title_id')
+        author = self.request.user
+        if Review.objects.filter(
+                author=author, title_id=title_id).exists():
             return Response(status=status.HTTP_400_BAD_REQUEST)
+        else:
+            serializer.save(
+                title_id=title_id,
+                author=author
+            )
 
 
 class CommentViewSet(viewsets.ModelViewSet):
+    """Вьюсет сериалайзера CommentSerializer"""
     serializer_class = CommentSerializer
     permission_classes = [
         IsAuthenticatedOrReadOnly & IsAuthorOrStaffOrReadOnly
@@ -193,7 +186,7 @@ class TitleFilterSet(django_filters.FilterSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    """Вьюсет сериалайзера UserSerializer"""
+    """Вьюсет сериалайзера TitleSerializer"""
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnly]
@@ -208,7 +201,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 
 class CategoryViewSet(ListCreateDestroyMixin):
-    """Вьюсет сериалайзера UserSerializer"""
+    """Вьюсет сериалайзера CategorySerializer"""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
@@ -216,7 +209,7 @@ class CategoryViewSet(ListCreateDestroyMixin):
 
 
 class GenreViewSet(ListCreateDestroyMixin):
-    """Вьюсет сериалайзера UserSerializer"""
+    """Вьюсет сериалайзера GenreSerializer"""
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [IsAdminOrReadOnly]
