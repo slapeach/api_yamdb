@@ -2,6 +2,7 @@ import string
 import secrets
 
 import django_filters
+from django.db.models import Avg
 from django.core.mail import EmailMessage
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -165,7 +166,9 @@ class TitleFilterSet(django_filters.FilterSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет сериалайзера TitleSerializer"""
-    queryset = Title.objects.all()
+    queryset = Title.objects.all().annotate(
+        Avg('reviews__score')
+    ).order_by('name')
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = (DjangoFilterBackend,)

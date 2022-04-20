@@ -1,7 +1,4 @@
-import math
-
 from django.utils import timezone
-from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
@@ -106,7 +103,9 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class TitleSerializer(serializers.ModelSerializer):
     """Сериалайзер модели Title"""
-    rating = serializers.SerializerMethodField(read_only=True)
+    rating = serializers.IntegerField(
+        source='reviews__score__avg', read_only=True
+    )
     category = CategorySerializer()
     genre = GenreSerializer(many=True)
 
@@ -118,15 +117,6 @@ class TitleSerializer(serializers.ModelSerializer):
             'description',
             'genre', 'category'
         )
-
-    def get_rating(self, obj):
-        title_id = obj.id
-        reviews = Review.objects.filter(title_id=title_id)
-        if reviews.count() > 0:
-            scores = reviews.aggregate(Avg('score'))
-            rating = math.ceil(scores.get('score__avg'))
-            return rating
-        return None
 
 
 class TitleCreateSerializer(serializers.ModelSerializer):
