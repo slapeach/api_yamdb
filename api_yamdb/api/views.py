@@ -2,13 +2,7 @@ import string
 import secrets
 
 import django_filters
-<<<<<<< HEAD
-from django.core.mail import send_mail
-=======
-
-
 from django.core.mail import EmailMessage
->>>>>>> 2703121b745d53149aa23d81eb93df78739c44c7
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
@@ -80,25 +74,12 @@ class APISendCode(APIView):
             username=serializer.validated_data['username'],
             confirmation_code=confirmation_code
         )
-<<<<<<< HEAD
-        send_mail(
-            'Регистрация YAMDB',
-            f'Для подтверждения регистрации'
-            f'используйте код подвтерждения:'
-            f'{confirmation_code}',
-            'yamdb@gmail.com',
-            [serializer.data['email']],
-            fail_silently=False
-        )
-=======
         email = EmailMessage('Регистрация YAMDB',
                              f'используйте код подвтерждения:'
                              f'{confirmation_code}',
                              to=[serializer.validated_data['email']],
                              )
         email.send()
-
->>>>>>> 2703121b745d53149aa23d81eb93df78739c44c7
         return Response(serializer.data,
                         status=status.HTTP_200_OK)
 
@@ -112,10 +93,6 @@ class APISendToken(APIView):
         serializer.is_valid(raise_exception=True)
         user = get_object_or_404(
             User, username=serializer.validated_data['username']
-<<<<<<< HEAD
-=======
-
->>>>>>> 2703121b745d53149aa23d81eb93df78739c44c7
         )
         if serializer.validated_data['confirmation_code'] == (
                 user.confirmation_code):
