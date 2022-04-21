@@ -14,7 +14,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from reviews.models import Category, Genre, Review, Title, User
+from reviews.models import Category, Genre, Review, Title, User, USER
 from .filters import TitleFilter
 from .mixins import ListCreateDestroyMixin
 from .permissions import IsAdmin, IsAdminOrReadOnly, IsAuthorOrStaffOrReadOnly
@@ -50,7 +50,7 @@ class UserViewSet(viewsets.ModelViewSet):
             )
             serializer.is_valid(raise_exception=True)
             if request.user.is_user:
-                serializer.save(role='user')
+                serializer.save(role=USER)
             else:
                 serializer.save()
             return Response(serializer.data,

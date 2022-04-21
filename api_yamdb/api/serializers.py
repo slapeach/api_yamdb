@@ -54,6 +54,13 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = ('id', 'text', 'author', 'score', 'pub_date', 'title')
 
+    def validate_score(self, value):
+        if not (1 <= value <= 10) or value is None:
+            raise serializers.ValidationError(
+                'Возможная оценка: от 1 до 10'
+            )
+        return value
+
     def validate(self, attrs):
         title = get_object_or_404(
             Title, id=self.context['view'].kwargs.get('title_id')
@@ -64,14 +71,6 @@ class ReviewSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     'Возможно оставить только 1 отзыв на произведение'
                 )
-        if 'score' not in attrs.keys():
-            raise serializers.ValidationError(
-                'Поле score - обязательное. Проверьте корректность данных'
-            )
-        if attrs['score'] < 1 or attrs['score'] > 10:
-            raise ValidationError(
-                message='Возможная оценка: от 1 до 10'
-            )
         return super().validate(attrs)
 
 
